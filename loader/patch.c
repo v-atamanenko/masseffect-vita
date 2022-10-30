@@ -22,13 +22,27 @@ volatile int sus_thread_count = 0;
 so_hook susthread_hook;
 
 int SusThread(void* arg) {
-    printf("SusThread wants to run with arg 0x%x, delaying\n", arg);
+
     sus_thread_count++;
     sceKernelDelayThread(sus_thread_count * 4 * 1000 * 1000); // delay 4xThreadNum seconds
     SO_CONTINUE(int, susthread_hook, arg);
 }
 
+ushort * _ZN2EA4StdC10ScanfLocal12ReadFormat16EPKwPNS1_10FormatDataE(wchar_t *param_1,void *param_2) {
+    printf("_ZN2EA4StdC10ScanfLocal12ReadFormat16EPKwPNS1_10FormatDataE\n");
+    return 0;
+}
+
 void so_patch(void) {
+    //hook_addr(so_symbol(&so_mod, "_ZN2EA4StdC10ScanfLocal12ReadFormat16EPKwPNS1_10FormatDataE"), (uintptr_t)_ZN2EA4StdC10ScanfLocal12ReadFormat16EPKwPNS1_10FormatDataE);
+
+    uint32_t nop = 0xe1a00000;
+    //kuKernelCpuUnrestrictedMemcpy((void *)(so_mod.text_base + 0x00384274), &nop, sizeof(nop));
+    //kuKernelCpuUnrestrictedMemcpy((void *)(so_mod.text_base + 0x00382934), &nop, sizeof(nop));
+    //kuKernelCpuUnrestrictedMemcpy((void *)(so_mod.text_base + 0x00382938), &nop, sizeof(nop));
+    //kuKernelCpuUnrestrictedMemcpy((void *)(so_mod.text_base + 0x0038293c), &nop, sizeof(nop));
+
+    /*
     // Always fail check for "appbundle:" in filename ==> don't use JNI IO funcs.
     uint32_t fix = 0xea000007;
     kuKernelCpuUnrestrictedMemcpy((void *)(so_mod.text_base + 0x0022bf6c), &fix, sizeof(fix));
@@ -38,5 +52,5 @@ void so_patch(void) {
 
     // Sus thread
     // A thread that causes some kind of undefined behaviour and crashes in different places if not delayed
-    susthread_hook = hook_addr((uintptr_t)so_mod.text_base + 0x00320624, (uintptr_t)&SusThread);
+    susthread_hook = hook_addr((uintptr_t)so_mod.text_base + 0x00320624, (uintptr_t)&SusThread);*/
 }

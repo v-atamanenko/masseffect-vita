@@ -11,7 +11,7 @@ endif()
 if(DEFINED ENV{PSVITAIP})
   set(PSVITAIP "$ENV{PSVITAIP}")
 else()
-  set(PSVITAIP "192.168.1.17")
+  set(PSVITAIP "192.168.1.22")
   message(WARNING "PSVITAIP environment variable is not set, using default IP ${PSVITAIP}")
 endif()
 
@@ -26,14 +26,14 @@ project(so_loader C CXX)
 
 include("${VITASDK}/share/vita.cmake" REQUIRED)
 
-set(VITA_APP_NAME "Dead Space")
-set(VITA_TITLEID  "DEADSPACE")
-set(VITA_VPKNAME  "DEADSPACE")
+set(VITA_APP_NAME "Mass Effect: Infiltrator")
+set(VITA_TITLEID  "MASSEFFEC")
+set(VITA_VPKNAME  "MassEffectInfiltrator")
 set(VITA_VERSION  "01.00")
 set(VITA_MKSFOEX_FLAGS "-d ATTRIBUTE2=12")
 
 option(DEBUG "Print debug information to stdout" OFF)
-option(DEBUG_GL "Print (very verbose) debug logs of VitaGL/PVR to stdout" OFF)
+option(DEBUG_GL "Print (very verbose) debug logs of VitaGL to stdout" OFF)
 
 if (DEBUG)
   add_definitions(-DDEBUG)
@@ -42,10 +42,9 @@ if (DEBUG_GL)
   add_definitions(-DDEBUG_GL)
 endif()
 
-SET(DATA_PATH "ux0:data/deadspace/" CACHE STRING "Path to data files")
+SET(DATA_PATH "ux0:data/masseffect/" CACHE STRING "Path to data files")
 SET(DATA_PATH_INT "${DATA_PATH}assets/" CACHE STRING "Path to assets folder")
-SET(SO_PATH "${DATA_PATH}lib/armeabi/libEAMGameDeadSpace.so" CACHE STRING "Path to .so")
-SET(GRAPHICS_API "VGL" CACHE STRING "\"VGL\" for VitaGL, \"PVR\" for PVR_PSP2")
+SET(SO_PATH "${DATA_PATH}lib/armeabi/libMassEffect.so" CACHE STRING "Path to .so")
 
 add_definitions(-DDATA_PATH="${DATA_PATH}")
 add_definitions(-DDATA_PATH_INT="${DATA_PATH_INT}")
@@ -53,7 +52,7 @@ add_definitions(-DSO_PATH="${SO_PATH}")
 
 add_definitions(-D_GNU_SOURCE) # makes sincos, sincosf, etc. visible
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wl,-q -O3 -mfpu=neon -ftree-vectorize -mfloat-abi=softfp")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wl,-q -O2 -mfloat-abi=softfp")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++11")
 
 add_executable(so_loader
@@ -77,11 +76,6 @@ add_executable(so_loader
         loader/reimpl/sys.c
         lib/sha1/sha1.c
         lib/so_util/so_util.c
-        lib/VFPVector/vfp_f32_emu.c
-        lib/VFPVector/vfp_f64_emu.c
-        lib/VFPVector/vfp_gen.c
-        lib/VFPVector/vfp_vector.c
-        lib/VFPVector/vfp_vector.h
 )
 
 set(EXCEPTION_SAFETY 1)
@@ -100,36 +94,16 @@ target_include_directories(so_loader
         PUBLIC ${CMAKE_SOURCE_DIR}/loader
 )
 
-if (GRAPHICS_API STREQUAL "PVR")
-  add_definitions(-D__psp2__)
-  add_definitions(-DGRAPHICS_API=1)
-  set(GRAPHICS_LIBS
-          libgpu_es4_ext_stub_weak
-          libIMGEGL_stub_weak
-          libGLESv1_CM_stub_weak
-  )
-  set(SDL_LIBS)
-  set(VPK_INCLUDES
-          ${CMAKE_SOURCE_DIR}/module module
-  )
-else()
-  add_definitions(-DGRAPHICS_API=0)
-  set(GRAPHICS_LIBS
-          vitaGL
-          vitashark
-          SceShaccCgExt
-          taihen_stub
-          SceShaccCg_stub
-  )
-  set(VPK_INCLUDES)
-endif()
-
 target_link_libraries(so_loader
         -Wl,--whole-archive pthread -Wl,--no-whole-archive
+        stdc++
+        vitaGL
+        vitashark
+        SceShaccCgExt
+        taihen_stub
+        SceShaccCg_stub
         z
         m
-        stdc++
-        ${GRAPHICS_LIBS}
         ScePgf_stub
         mathneon
         ${CMAKE_BINARY_DIR}/lib/kubridge/stubs/libkubridge_stub.a
@@ -157,11 +131,11 @@ vita_create_vpk(${VITA_VPKNAME}.vpk ${VITA_TITLEID} eboot.bin
         VERSION ${VITA_VERSION}
         NAME ${VITA_APP_NAME}
         FILE ${CMAKE_SOURCE_DIR}/livearea/icon0.png sce_sys/icon0.png
-          ${CMAKE_SOURCE_DIR}/livearea/pic0.png sce_sys/pic0.png
-          ${CMAKE_SOURCE_DIR}/livearea/startup.png sce_sys/livearea/contents/startup.png
-          ${CMAKE_SOURCE_DIR}/livearea/bg0.png sce_sys/livearea/contents/bg0.png
-          ${CMAKE_SOURCE_DIR}/livearea/template.xml sce_sys/livearea/contents/template.xml
-          ${VPK_INCLUDES}
+        ${CMAKE_SOURCE_DIR}/livearea/pic0.png sce_sys/pic0.png
+        ${CMAKE_SOURCE_DIR}/livearea/startup.png sce_sys/livearea/contents/startup.png
+        ${CMAKE_SOURCE_DIR}/livearea/bg0.png sce_sys/livearea/contents/bg0.png
+        ${CMAKE_SOURCE_DIR}/livearea/template.xml sce_sys/livearea/contents/template.xml
+        ${VPK_INCLUDES}
 )
 
 add_custom_command(TARGET so_loader

@@ -54,7 +54,7 @@ dirent64_bionic * dirent_newlib_to_dirent_bionic(struct dirent* dirent_newlib) {
 
 struct dirent * readdir_soloader(DIR * dir) {
     struct dirent* ret = readdir(dir);
-    //debugPrintf("[io] readdir()\n");
+    debugPrintf("[io] readdir()\n");
     return ret;
 }
 
@@ -71,7 +71,7 @@ int readdir_r_soloader(DIR *dirp, dirent64_bionic *entry, dirent64_bionic **resu
         free(entry_tmp);
     }
 
-    //debugPrintf("[io] readdir_r()\n");
+    debugPrintf("[io] readdir_r()\n");
     return ret;
 }
 
@@ -101,7 +101,7 @@ int open_soloader(char *_fname, int flags) {
 
 int read_soloader(int __fd, void *__buf, size_t __nbyte) {
     int ret = read(__fd, __buf, __nbyte);
-    //debugPrintf("[io] read(fd#%i, %x, %i): %i\n", __fd, (int)__buf, __nbyte, ret);
+    debugPrintf("[io] read(fd#%i, %x, %i): %i\n", __fd, (int)__buf, __nbyte, ret);
     return ret;
 }
 
@@ -125,7 +125,7 @@ int fstat_soloader(int fd, void *statbuf) {
 
 int write_soloader(int fd, const void *buf, int count) {
     int ret = write(fd, buf, count);
-    //debugPrintf("[io] write(fd#%i, 0x%x, %i): %i\n", fd, buf, count, ret);
+    debugPrintf("[io] write(fd#%i, 0x%x, %i): %i\n", fd, buf, count, ret);
     return ret;
 }
 
@@ -142,19 +142,19 @@ int fsync_soloader(int fd) {
 
 off_t lseek_soloader(int fildes, off_t offset, int whence) {
     off_t ret = lseek(fildes, offset, whence);
-    //debugPrintf("[io] lseek(fd#i, %i, %i): %i\n", fildes, offset, whence, ret);
+    debugPrintf("[io] lseek(fd#i, %i, %i): %i\n", fildes, offset, whence, ret);
     return ret;
 }
 
 int close_soloader(int fd) {
     int ret = close(fd);
-    //debugPrintf("[io] close(fd#%i): %i\n", fd, ret);
+    debugPrintf("[io] close(fd#%i): %i\n", fd, ret);
     return ret;
 }
 
 int closedir_soloader(DIR* dir) {
     int ret = closedir(dir);
-    //debugPrintf("[io] closedir(0x%x): %i\n", dir, ret);
+    debugPrintf("[io] closedir(0x%x): %i\n", dir, ret);
     return ret;
 }
 
@@ -186,7 +186,7 @@ int stat_soloader(char *_pathname, stat64_bionic *statbuf) {
         statbuf->st_ctime_nsec = 0;
     }
 
-    //debugPrintf("[io] stat(%s): %i", pathname, res);
+    debugPrintf("[io] stat(%s): %i", pathname, res);
     free(pathname);
     return res;
 }

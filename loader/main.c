@@ -39,8 +39,6 @@ int _newlib_heap_size_user = MEMORY_NEWLIB_MB * 1024 * 1024;
 so_module so_mod;
 
 int main() {
-    RegisterHandler();
-
     SceAppUtilInitParam init_param;
     SceAppUtilBootParam boot_param;
     memset(&init_param, 0, sizeof(SceAppUtilInitParam));
@@ -72,11 +70,11 @@ int main() {
     so_flush_caches(&so_mod);
     debugPrintf("so_flush_caches() passed.\n");
 
-    gl_preload();
-    debugPrintf("gl_preload() passed.\n");
-
     so_initialize(&so_mod);
     debugPrintf("so_initialize() passed.\n");
+
+    gl_preload();
+    debugPrintf("gl_preload() passed.\n");
 
     jni_init();
     debugPrintf("jni_init() passed.\n");

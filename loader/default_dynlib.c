@@ -48,7 +48,7 @@
 #include "reimpl/pthr.h"
 
 #define PAGE_SIZE 4096
-unsigned int __page_size = 0;
+unsigned int __page_size = 4096;
 
 extern void * _ZNSt9exceptionD2Ev;
 extern void * _ZSt17__throw_bad_allocv;
@@ -92,6 +92,9 @@ static FILE __sF_fake[0x100][3];
 extern const char *BIONIC_ctype_;
 extern const short *BIONIC_tolower_tab_;
 extern const short *BIONIC_toupper_tab_;
+
+int timezone = 1;
+char *__tzname[2];
 
 #define __ATOMIC_INLINE__ static __inline__ __attribute__((always_inline))
 
@@ -203,6 +206,17 @@ int setlocale_tempwrap() { fprintf(stderr, "ret0d call!!! setlocale_tempwrap\n")
 int statfs_tempwrap() { fprintf(stderr, "ret0d call!!! statfs_tempwrap\n"); return 0; }
 int sigaction_tempwrap() { fprintf(stderr, "ret0d call!!! sigaction_tempwrap\n"); return 0; }
 
+int glBlendColor_tempwrap() { fprintf(stderr, "ret0d call!!! glBlendColor_tempwrap\n"); return 0; }
+int glGetUniformfv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetUniformfv_tempwrap\n"); return 0; }
+int glDetachShader_tempwrap() { fprintf(stderr, "ret0d call!!! glDetachShader_tempwrap\n"); return 0; }
+int glGetUniformiv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetUniformiv_tempwrap\n"); return 0; }
+int glValidateProgram_tempwrap() { fprintf(stderr, "ret0d call!!! glValidateProgram_tempwrap\n"); return 0; }
+int glGetRenderbufferParameteriv_tempwrap(GLenum target,
+                                          GLenum pname,
+                                          GLint *params) { fprintf(stderr, "ret0d call!!! glGetRenderbufferParameteriv(0x%x, 0x%x, 0x%x)\n", target, pname, params); return 0; }
+int glIsShader_tempwrap() { fprintf(stderr, "ret0d call!!! glIsShader_tempwrap\n"); return 0; }
+int glGetShaderPrecisionFormat_tempwrap() { fprintf(stderr, "ret0d call!!! glGetShaderPrecisionFormat_tempwrap\n"); return 0; }
+
 static FILE __sF_fake[0x100][3];
 
 // NOLINT(cppcoreguidelines-interfaces-global-init)
@@ -223,13 +237,13 @@ so_default_dynlib default_dynlib[] = {
         { "__errno", (uintptr_t)&__errno },
         { "__gnu_Unwind_Find_exidx", (uintptr_t)&__gnu_Unwind_Find_exidx_tempwrap },
         { "__isinf", (uintptr_t)&__isinf_tempwrap },
+        { "__page_size", (uintptr_t)&__page_size },
         { "__sF", (uintptr_t)&__sF_fake },
         { "__stack_chk_fail", (uintptr_t)&__stack_chk_fail },
         { "__stack_chk_guard", (uintptr_t)&__stack_chk_guard },
-        { "__page_size", (uintptr_t)&__page_size },
         { "_ctype_", (uintptr_t)&BIONIC_ctype_ },
-        { "_toupper_tab_", (uintptr_t)&BIONIC_toupper_tab_ },
         { "_tolower_tab_", (uintptr_t)&BIONIC_tolower_tab_ },
+        { "_toupper_tab_", (uintptr_t)&BIONIC_toupper_tab_ },
         { "abort", (uintptr_t)&abort },
         { "acos", (uintptr_t)&acos },
         { "acosf", (uintptr_t)&acosf },
@@ -283,7 +297,7 @@ so_default_dynlib default_dynlib[] = {
         { "glBindFramebuffer", (uintptr_t)&glBindFramebuffer },
         { "glBindRenderbuffer", (uintptr_t)&glBindRenderbuffer },
         { "glBindTexture", (uintptr_t)&glBindTexture },
-        //{ "glBlendColor", (uintptr_t)&glBlendColor },
+        { "glBlendColor", (uintptr_t)&glBlendColor_tempwrap },
         { "glBlendEquation", (uintptr_t)&glBlendEquation },
         { "glBlendEquationSeparate", (uintptr_t)&glBlendEquationSeparate },
         { "glBlendFunc", (uintptr_t)&glBlendFunc },
@@ -296,11 +310,11 @@ so_default_dynlib default_dynlib[] = {
         { "glClearDepthf", (uintptr_t)&glClearDepthf },
         { "glClearStencil", (uintptr_t)&glClearStencil },
         { "glColorMask", (uintptr_t)&glColorMask },
-        { "glCompileShader", (uintptr_t)&glCompileShader },
+        { "glCompileShader", (uintptr_t)&ret0 },
         { "glCompressedTexImage2D", (uintptr_t)&glCompressedTexImage2D },
-        //{ "glCompressedTexSubImage2D", (uintptr_t)&glCompressedTexSubImage2D },
-        //{ "glCopyTexImage2D", (uintptr_t)&glCopyTexImage2D },
-        //{ "glCopyTexSubImage2D", (uintptr_t)&glCopyTexSubImage2D },
+        { "glCompressedTexSubImage2D", (uintptr_t)&glCompressedTexSubImage2D_tempwrap },
+        { "glCopyTexImage2D", (uintptr_t)&glCopyTexImage2D_tempwrap },
+        { "glCopyTexSubImage2D", (uintptr_t)&glCopyTexSubImage2D_tempwrap },
         { "glCreateProgram", (uintptr_t)&glCreateProgram },
         { "glCreateShader", (uintptr_t)&glCreateShader },
         { "glCullFace", (uintptr_t)&glCullFace },
@@ -313,7 +327,7 @@ so_default_dynlib default_dynlib[] = {
         { "glDepthFunc", (uintptr_t)&glDepthFunc },
         { "glDepthMask", (uintptr_t)&glDepthMask },
         { "glDepthRangef", (uintptr_t)&glDepthRangef },
-        //{ "glDetachShader", (uintptr_t)&glDetachShader },
+        { "glDetachShader", (uintptr_t)&glDetachShader_tempwrap },
         { "glDisable", (uintptr_t)&glDisable },
         { "glDisableVertexAttribArray", (uintptr_t)&glDisableVertexAttribArray },
         { "glDrawArrays", (uintptr_t)&glDrawArrays },
@@ -342,27 +356,27 @@ so_default_dynlib default_dynlib[] = {
         { "glGetIntegerv", (uintptr_t)&glGetIntegerv },
         { "glGetProgramInfoLog", (uintptr_t)&glGetProgramInfoLog },
         { "glGetProgramiv", (uintptr_t)&glGetProgramiv },
-        //{ "glGetRenderbufferParameteriv", (uintptr_t)&glGetRenderbufferParameteriv },
+        { "glGetRenderbufferParameteriv", (uintptr_t)&glGetRenderbufferParameteriv_tempwrap },
         { "glGetShaderInfoLog", (uintptr_t)&glGetShaderInfoLog },
-        //{ "glGetShaderPrecisionFormat", (uintptr_t)&glGetShaderPrecisionFormat },
+        { "glGetShaderPrecisionFormat", (uintptr_t)&glGetShaderPrecisionFormat_tempwrap },
         { "glGetShaderSource", (uintptr_t)&glGetShaderSource },
         { "glGetShaderiv", (uintptr_t)&glGetShaderiv },
         { "glGetString", (uintptr_t)&glGetString },
-        //{ "glGetTexParameterfv", (uintptr_t)&glGetTexParameterfv },
-        //{ "glGetTexParameteriv", (uintptr_t)&glGetTexParameteriv },
+        { "glGetTexParameterfv", (uintptr_t)&glGetTexParameterfv_tempwrap },
+        { "glGetTexParameteriv", (uintptr_t)&glGetTexParameteriv_tempwrap },
         { "glGetUniformLocation", (uintptr_t)&glGetUniformLocation },
-        //{ "glGetUniformfv", (uintptr_t)&glGetUniformfv },
-        //{ "glGetUniformiv", (uintptr_t)&glGetUniformiv },
+        { "glGetUniformfv", (uintptr_t)&glGetUniformfv_tempwrap },
+        { "glGetUniformiv", (uintptr_t)&glGetUniformiv_tempwrap },
         { "glGetVertexAttribPointerv", (uintptr_t)&glGetVertexAttribPointerv },
         { "glGetVertexAttribfv", (uintptr_t)&glGetVertexAttribfv },
         { "glGetVertexAttribiv", (uintptr_t)&glGetVertexAttribiv },
         { "glHint", (uintptr_t)&glHint },
-        //{ "glIsBuffer", (uintptr_t)&glIsBuffer },
+        { "glIsBuffer", (uintptr_t)&glIsBuffer_tempwrap },
         { "glIsEnabled", (uintptr_t)&glIsEnabled },
         { "glIsFramebuffer", (uintptr_t)&glIsFramebuffer },
         { "glIsProgram", (uintptr_t)&glIsProgram },
         { "glIsRenderbuffer", (uintptr_t)&glIsRenderbuffer },
-        //{ "glIsShader", (uintptr_t)&glIsShader },
+        { "glIsShader", (uintptr_t)&glIsShader_tempwrap },
         { "glIsTexture", (uintptr_t)&glIsTexture },
         { "glLineWidth", (uintptr_t)&glLineWidth },
         { "glLinkProgram", (uintptr_t)&glLinkProgram },
@@ -371,7 +385,7 @@ so_default_dynlib default_dynlib[] = {
         { "glReadPixels", (uintptr_t)&glReadPixels },
         { "glReleaseShaderCompiler", (uintptr_t)&glReleaseShaderCompiler },
         { "glRenderbufferStorage", (uintptr_t)&glRenderbufferStorage },
-        //{ "glSampleCoverage", (uintptr_t)&glSampleCoverage },
+        { "glSampleCoverage", (uintptr_t)&glSampleCoverage_tempwrap },
         { "glScissor", (uintptr_t)&glScissor },
         { "glShaderBinary", (uintptr_t)&glShaderBinary },
         { "glShaderSource", (uintptr_t)&glShaderSourceHook },
@@ -383,7 +397,7 @@ so_default_dynlib default_dynlib[] = {
         { "glStencilOpSeparate", (uintptr_t)&glStencilOpSeparate },
         { "glTexImage2D", (uintptr_t)&glTexImage2D },
         { "glTexParameterf", (uintptr_t)&glTexParameterf },
-        //{ "glTexParameterfv", (uintptr_t)&glTexParameterfv },
+        { "glTexParameterfv", (uintptr_t)&glTexParameterfv_tempwrap },
         { "glTexParameteri", (uintptr_t)&glTexParameteri },
         { "glTexParameteriv", (uintptr_t)&glTexParameteriv },
         { "glTexSubImage2D", (uintptr_t)&glTexSubImage2D },
@@ -407,7 +421,7 @@ so_default_dynlib default_dynlib[] = {
         { "glUniformMatrix3fv", (uintptr_t)&glUniformMatrix3fv },
         { "glUniformMatrix4fv", (uintptr_t)&glUniformMatrix4fv },
         { "glUseProgram", (uintptr_t)&glUseProgram },
-        //{ "glValidateProgram", (uintptr_t)&glValidateProgram },
+        { "glValidateProgram", (uintptr_t)&glValidateProgram_tempwrap },
         { "glVertexAttrib1f", (uintptr_t)&glVertexAttrib1f },
         { "glVertexAttrib1fv", (uintptr_t)&glVertexAttrib1fv },
         { "glVertexAttrib2f", (uintptr_t)&glVertexAttrib2f },
@@ -441,7 +455,7 @@ so_default_dynlib default_dynlib[] = {
         { "nanosleep", (uintptr_t)&nanosleep_soloader },
         { "open", (uintptr_t)&open_soloader },
         { "opendir", (uintptr_t)&opendir_soloader },
-        { "poll", (uintptr_t)&poll_tempwrap },
+        { "poll", (uintptr_t)&ret0 },
         { "pow", (uintptr_t)&pow },
         { "powf", (uintptr_t)&powf },
         { "prctl", (uintptr_t)&prctl_tempwrap },
@@ -527,6 +541,8 @@ so_default_dynlib default_dynlib[] = {
         { "tan", (uintptr_t)&tan },
         { "tanf", (uintptr_t)&tanf },
         { "time", (uintptr_t)&time },
+        { "timezone", (uintptr_t)&timezone },
+        { "tzname", (uintptr_t)&__tzname },
         { "unlink", (uintptr_t)&unlink },
         { "usleep", (uintptr_t)&usleep },
         { "wcscpy", (uintptr_t)&wcscpy },

@@ -514,8 +514,9 @@ int so_resolve_with_dummy(so_module *mod, so_default_dynlib *default_dynlib, int
 
 void so_initialize(so_module *mod) {
     for (int i = 0; i < mod->num_init_array; i++) {
-        if (mod->init_array[i])
+        if (mod->init_array[i] && (int)mod->init_array[i] != -1) {
             mod->init_array[i]();
+        }
     }
 }
 

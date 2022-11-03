@@ -7,14 +7,12 @@
 
 #include <math.h>
 
-#include "jni_fake.h"
-
 #define GRAVITY_CONSTANT 9.807f
 
-#define kIdRawPointerCancel 0xc
-#define kIdRawPointerDown 0x6000c
-#define kIdRawPointerMove 0x4000c
-#define kIdRawPointerUp 0x8000c
+#define kIdRawPointerCancel 0xe
+#define kIdRawPointerDown 0x6000e
+#define kIdRawPointerMove 0x4000e
+#define kIdRawPointerUp 0x8000e
 #define kIdUndefined 0
 
 #define kModuleTypeIdTouchScreen 1000

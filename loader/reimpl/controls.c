@@ -1,6 +1,8 @@
 #include "main.h"
 #include "controls.h"
 
+#include <FalsoJNI/FalsoJNI.h>
+
 int lastX[SCE_TOUCH_MAX_REPORT] = {-1, -1, -1, -1, -1, -1, -1, -1};
 int lastY[SCE_TOUCH_MAX_REPORT] = {-1, -1, -1, -1, -1, -1, -1, -1};
 

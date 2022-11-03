@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <psp2/kernel/sysmem.h>
+#include <string.h>
 
 void gl_preload() {
     if (!file_exists("ur0:/data/libshacccg.suprx")
@@ -36,12 +37,28 @@ void gl_swap() {
 
 
 void glShaderSourceHook(GLuint shader, GLsizei count, const GLchar **string,
-                        const GLint *length) {
+                        const GLint *_length) {
     uint32_t sha1[5];
     SHA1_CTX ctx;
+    int length;
+
+    if (!string) {
+        printf("string == null\n");
+        return;
+    } else if (!*string) {
+        printf("*string == null\n");
+        return;
+    }
+
+    // From OGL specs: If length is NULL, each string is assumed to be null terminated.
+    if (!_length) {
+        length = (int)strlen(*string);
+    } else {
+        length = *_length;
+    }
 
     sha1_init(&ctx);
-    sha1_update(&ctx, (uint8_t *)*string, *length);
+    sha1_update(&ctx, (uint8_t *)*string, length);
     sha1_final(&ctx, (uint8_t *)sha1);
 
     char sha_name[64];
@@ -61,12 +78,12 @@ void glShaderSourceHook(GLuint shader, GLsizei count, const GLchar **string,
 
         file = fopen(glsl_path, "w");
         if (file) {
-            fwrite(*string, 1, *length, file);
+            fwrite(*string, 1, length, file);
             fclose(file);
         }
 
         snprintf(gxp_path, sizeof(gxp_path), "%s/%s.gxp",
-                 GXP_PATH, "9349e41c5fad90529f8aa627f5ad9ceeb0b75c7c");
+                 GXP_PATH, "5e7eb5913ac3778652028876934235ebfb96beae");
         file = fopen(gxp_path, "rb");
     }
 

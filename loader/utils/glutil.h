@@ -24,6 +24,6 @@ void gl_init();
 void gl_swap();
 
 void glShaderSourceHook(GLuint shader, GLsizei count,
-                        const GLchar **string, const GLint *length);
+                        const GLchar **string, const GLint *_length);
 
 #endif // SOLOADER_GLUTIL_H

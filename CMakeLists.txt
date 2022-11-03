@@ -11,7 +11,7 @@ endif()
 if(DEFINED ENV{PSVITAIP})
   set(PSVITAIP "$ENV{PSVITAIP}")
 else()
-  set(PSVITAIP "192.168.1.22")
+  set(PSVITAIP "192.168.1.19")
   message(WARNING "PSVITAIP environment variable is not set, using default IP ${PSVITAIP}")
 endif()
 
@@ -36,7 +36,7 @@ option(DEBUG "Print debug information to stdout" OFF)
 option(DEBUG_GL "Print (very verbose) debug logs of VitaGL to stdout" OFF)
 
 if (DEBUG)
-  add_definitions(-DDEBUG)
+  add_definitions(-DDEBUG -DDEBUG_SOLOADER)
 endif()
 if (DEBUG_GL)
   add_definitions(-DDEBUG_GL)
@@ -62,10 +62,11 @@ add_executable(so_loader
         loader/default_dynlib.c
         loader/utils/dialog.c
         loader/utils/glutil.c
-        loader/jni_fake.c
+        loader/falsojni_impl.c
         #loader/utils/loading_screen.c
         loader/patch.c
         loader/utils/utils.c
+        loader/utils/logger.c
         loader/reimpl/controls.c
         loader/reimpl/ctype_patch.c
         loader/reimpl/env.c
@@ -76,6 +77,9 @@ add_executable(so_loader
         loader/reimpl/sys.c
         lib/sha1/sha1.c
         lib/so_util/so_util.c
+        lib/FalsoJNI/FalsoJNI.c
+        lib/FalsoJNI/FalsoJNI_Logger.c
+        lib/FalsoJNI/FalsoJNI_ImplBridge.c
 )
 
 set(EXCEPTION_SAFETY 1)
@@ -135,7 +139,8 @@ vita_create_vpk(${VITA_VPKNAME}.vpk ${VITA_TITLEID} eboot.bin
         ${CMAKE_SOURCE_DIR}/livearea/startup.png sce_sys/livearea/contents/startup.png
         ${CMAKE_SOURCE_DIR}/livearea/bg0.png sce_sys/livearea/contents/bg0.png
         ${CMAKE_SOURCE_DIR}/livearea/template.xml sce_sys/livearea/contents/template.xml
-        ${VPK_INCLUDES}
+        ${CMAKE_SOURCE_DIR}/shaders shaders
+        ${CMAKE_SOURCE_DIR}/data data
 )
 
 add_custom_command(TARGET so_loader

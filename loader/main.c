@@ -22,7 +22,7 @@
 
 #include "default_dynlib.h"
 #include "utils/glutil.h"
-#include "jni_fake.h"
+#include "FalsoJNI/FalsoJNI.h"
 #include "patch.h"
 #include "utils/dialog.h"
 
@@ -97,19 +97,42 @@ so_module *so_find_module_by_addr(uintptr_t addr) {
     return &so_mod;
 }
 
+extern int* _ZN2EA12GameSkeleton18waitForOrientationE;
+extern int * _ZL15creatingCounter;
 _Noreturn void *deadspace_main() {
     Java_com_ea_EAIO_EAIO_Startup = (void*)so_symbol(&so_mod,"Java_com_ea_EAIO_EAIO_Startup");
     int (*JNI_OnLoad)(JavaVM* jvm) = (void*)so_symbol(&so_mod,"JNI_OnLoad");
     void (*NativeOnCreate)(void) = (void*)so_symbol(&so_mod,"Java_com_ea_blast_MainActivity_NativeOnCreate");
     void (*NativeOnSurfaceCreated)(void) = (void*)so_symbol(&so_mod,"Java_com_ea_blast_AndroidRenderer_NativeOnSurfaceCreated");
-    void (*NativeOnVisibilityChanged)(JNIEnv* jniEnv, jobject obj, int moduleId, int hardKeyboardHidden) = (void*)so_symbol(&so_mod,"Java_com_ea_blast_KeyboardAndroid_NativeOnVisibilityChanged");
+    void (*Java_com_ea_easp_EASPHandler_initJNI)(JNIEnv* jniEnv, jobject obj) = (void*)so_symbol(&so_mod,"Java_com_ea_easp_EASPHandler_initJNI");
+    void (*NativeOnDeviceOrientationChange)(JNIEnv* jniEnv, jobject obj, int orientation) = (void*)so_symbol(&so_mod,"Java_com_ea_blast_DeviceOrientationHandlerAndroidDelegate_NativeOnDeviceOrientationChange");
     void (*NativeOnDrawFrame)(void) = (void*)so_symbol(&so_mod,"Java_com_ea_blast_AndroidRenderer_NativeOnDrawFrame");
 
     Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init = (void*)so_symbol(&so_mod,"Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init");
     Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release = (void*)so_symbol(&so_mod,"Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release");
 
+
+    gl_init();
+    debugPrintf("gl_init() passed.\n");
+
     JNI_OnLoad(&jvm);
     debugPrintf("JNI_OnLoad() passed.\n");
+
+
+
+    void (*initEAThread)(JNIEnv* env) = (void*)so_symbol(&so_mod,"Java_com_ea_EAThread_EAThread_Init");
+    void (*initEAIO)(JNIEnv* env, void* unused, jobject * assets, jstring * FilesDirAbsolutePath, jstring* ExternalStorageAbsolutePath) = (void*)so_symbol(&so_mod,"Java_com_ea_EAIO_EAIO_StartupNativeImpl");
+    void (*initEAMIO)(JNIEnv* env) = (void*)so_symbol(&so_mod,"Java_com_ea_EAMIO_StorageDirectory_StartupNativeImpl");
+
+    initEAThread(&jni);
+    debugPrintf("initEAThread() passed.\n");
+    initEAIO(&jni, 0x69696969, 0x42424242, "ux0:data/masseffect/", "ux0:data/masseffect/");
+    debugPrintf("initEAIO() passed.\n");
+    initEAMIO(&jni);
+    debugPrintf("initEAMIO() passed.\n");
+
+    Java_com_ea_easp_EASPHandler_initJNI(&jni, 0x42424242);
+    debugPrintf("Java_com_ea_easp_EASPHandler_initJNI() passed.\n");
 
     EAAudioCore__Startup();
     debugPrintf("EAAudioCore__Startup() passed.\n");
@@ -119,17 +142,20 @@ _Noreturn void *deadspace_main() {
 
     controls_init();
 
-    gl_init();
-    debugPrintf("gl_init() passed.\n");
 
     NativeOnSurfaceCreated();
     debugPrintf("Java_com_ea_blast_AndroidRenderer_NativeOnSurfaceCreated() passed.\n");
 
-    NativeOnVisibilityChanged(&jni, (void*)0x42424242, 600, 1);
-    debugPrintf("Java_com_ea_blast_KeyboardAndroid_NativeOnVisibilityChanged() passed.\n");
+    NativeOnDeviceOrientationChange(&jni, (jobject)0x42424242, 6);
+
+    // 2 4 3 1 8 16
+
+    //NativeOnVisibilityChanged(&jni, (void*)0x42424242, 600, 1);
+    //debugPrintf("Java_com_ea_blast_KeyboardAndroid_NativeOnVisibilityChanged() passed.\n");
 
     while (1) {
         NativeOnDrawFrame();
+        *_ZN2EA12GameSkeleton18waitForOrientationE = 0;
         gl_swap();
         controls_poll();
     }

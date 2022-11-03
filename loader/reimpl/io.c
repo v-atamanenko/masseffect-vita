@@ -76,8 +76,15 @@ int readdir_r_soloader(DIR *dirp, dirent64_bionic *entry, dirent64_bionic **resu
 }
 
 FILE *fopen_soloader(char *fname, char *mode) {
-    FILE* ret =  fopen(fname, mode);
-    debugPrintf("[io] fopen(%s): 0x%x\n", fname, ret);
+    char* fname_real;
+    if (strstr(fname, "/system/fonts/DroidSans")) {
+        fname_real = strdup("app0:data/Roboto-Regular.ttf");
+    } else {
+        fname_real = strdup(fname);
+    }
+    FILE* ret =  fopen(fname_real, mode);
+    debugPrintf("[io] fopen(%s) (%s): 0x%x\n", fname_real, fname, ret);
+    free(fname_real);
     return ret;
 }
 
@@ -101,7 +108,7 @@ int open_soloader(char *_fname, int flags) {
 
 int read_soloader(int __fd, void *__buf, size_t __nbyte) {
     int ret = read(__fd, __buf, __nbyte);
-    debugPrintf("[io] read(fd#%i, %x, %i): %i\n", __fd, (int)__buf, __nbyte, ret);
+    //debugPrintf("[io] read(fd#%i, %x, %i): %i\n", __fd, (int)__buf, __nbyte, ret);
     return ret;
 }
 
@@ -142,7 +149,7 @@ int fsync_soloader(int fd) {
 
 off_t lseek_soloader(int fildes, off_t offset, int whence) {
     off_t ret = lseek(fildes, offset, whence);
-    debugPrintf("[io] lseek(fd#i, %i, %i): %i\n", fildes, offset, whence, ret);
+    //debugPrintf("[io] lseek(fd#i, %i, %i): %i\n", fildes, offset, whence, ret);
     return ret;
 }
 
@@ -186,7 +193,7 @@ int stat_soloader(char *_pathname, stat64_bionic *statbuf) {
         statbuf->st_ctime_nsec = 0;
     }
 
-    debugPrintf("[io] stat(%s): %i", pathname, res);
+    //debugPrintf("[io] stat(%s): %i", pathname, res);
     free(pathname);
     return res;
 }

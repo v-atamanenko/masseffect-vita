@@ -1,115 +1,27 @@
-#ifndef SOLOADER_JNI_SPECIFIC_H
-#define SOLOADER_JNI_SPECIFIC_H
-
-#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wincompatible-function-pointer-types"
+#pragma ide diagnostic ignored "UnusedParameter"
 #pragma clang diagnostic ignored "-Wwritable-strings"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <FalsoJNI/FalsoJNI.h>
+#include <FalsoJNI/FalsoJNI_Impl.h>
 
 #include <pthread.h>
-#include "jni_fake.h"
+#include <string.h>
+#include <malloc.h>
+#include <stdlib.h>
+
 #include "android/java.io.InputStream.h"
-
 #include "android/EAAudioCore.h"
-
-typedef enum FIELD_TYPE {
-    FIELD_TYPE_UNKNOWN   = 0,
-    FIELD_TYPE_STRING    = 1,
-    FIELD_TYPE_BOOLEAN   = 2,
-    FIELD_TYPE_INT       = 3,
-    FIELD_TYPE_INT_ARRAY = 4
-} FIELD_TYPE;
-
-typedef struct {
-    int id;
-    char *name;
-    FIELD_TYPE f;
-} NameToFieldID;
-
-typedef struct {
-    int id;
-    jboolean value;
-} FieldsBoolean;
-
-typedef struct {
-    int id;
-    int value;
-} FieldsInt;
-
-typedef struct {
-    int id;
-    char *value;
-} FieldsString;
-
-typedef struct {
-    int id;
-    const int* value;
-    jsize length;
-} FieldsIntArray;
-
-typedef struct {
-    char *type_name;
-    FIELD_TYPE f;
-} FieldTypeMap;
-
-typedef enum METHOD_TYPE {
-    METHOD_TYPE_UNKNOWN   = 0,
-    METHOD_TYPE_VOID      = 1,
-    METHOD_TYPE_INT       = 2,
-    METHOD_TYPE_FLOAT     = 3,
-    METHOD_TYPE_LONG      = 4,
-    METHOD_TYPE_BOOLEAN   = 5,
-    METHOD_TYPE_OBJECT    = 6,
-    METHOD_TYPE_INT_ARRAY = 7,
-} METHOD_TYPE;
-
-typedef struct {
-    int id;
-    char *name;
-    METHOD_TYPE f;
-} NameToMethodID;
-
-typedef struct {
-    int id;
-    jobject (*Method)(int id, va_list args);
-} MethodsObject;
-
-typedef struct {
-    int id;
-    jint (*Method)(int id, va_list args);
-} MethodsInt;
-
-typedef struct {
-    int id;
-    jfloat (*Method)(int id, va_list args);
-} MethodsFloat;
-
-typedef struct {
-    int id;
-    void (*Method)(int id, va_list args);
-} MethodsVoid;
-
-typedef struct {
-    int id;
-    jboolean (*Method)(int id, va_list args);
-} MethodsBoolean;
-
-typedef struct {
-    int id;
-    jlong (*Method)(int id, va_list args);
-} MethodsLong;
 
 NameToMethodID nameToMethodId[] = {
     { 219, "Startup", METHOD_TYPE_VOID },
     { 220, "GetInstance", METHOD_TYPE_OBJECT },
     { 221, "getAssets", METHOD_TYPE_OBJECT },
-    { 300, "GetAccelerometerCount", METHOD_TYPE_OBJECT },
+    { 300, "GetAccelerometerCount", METHOD_TYPE_INT },
     { 301, "IsBatteryStateAvailable", METHOD_TYPE_OBJECT },
-    { 302, "GetCameraCount", METHOD_TYPE_OBJECT },
+    { 302, "GetCameraCount", METHOD_TYPE_INT },
     { 303, "GetChipset", METHOD_TYPE_OBJECT },
-    { 304, "GetCompassCount", METHOD_TYPE_OBJECT },
+    { 304, "GetCompassCount", METHOD_TYPE_INT },
     { 305, "GetManufacturer", METHOD_TYPE_OBJECT },
     { 306, "GetDeviceModel", METHOD_TYPE_OBJECT },
     { 307, "GetDeviceName", METHOD_TYPE_OBJECT },
@@ -117,9 +29,9 @@ NameToMethodID nameToMethodId[] = {
     { 309, "GetDeviceSubscriberID", METHOD_TYPE_OBJECT },
     { 310, "GetDeviceUniqueId", METHOD_TYPE_OBJECT },
     { 311, "GetDisplayCount", METHOD_TYPE_OBJECT },
-    { 312, "GetGyroscopeCount", METHOD_TYPE_OBJECT },
+    { 312, "GetGyroscopeCount", METHOD_TYPE_INT },
     { 313, "GetLocationAvailable", METHOD_TYPE_OBJECT },
-    { 314, "GetMicrophoneCount", METHOD_TYPE_OBJECT },
+    { 314, "GetMicrophoneCount", METHOD_TYPE_INT },
     { 315, "GetApiLevel", METHOD_TYPE_OBJECT },
     { 316, "GetPlatformRawName", METHOD_TYPE_OBJECT },
     { 317, "GetPlatformStdName", METHOD_TYPE_OBJECT },
@@ -129,11 +41,15 @@ NameToMethodID nameToMethodId[] = {
     { 321, "GetLanguage", METHOD_TYPE_OBJECT },
     { 322, "GetLocale", METHOD_TYPE_OBJECT },
     { 323, "GetTotalRAM", METHOD_TYPE_OBJECT },
-    { 324, "GetTouchPadCount", METHOD_TYPE_OBJECT },
-    { 325, "GetTouchScreenCount", METHOD_TYPE_OBJECT },
-    { 326, "GetTrackBallCount", METHOD_TYPE_OBJECT },
-    { 327, "GetVibratorCount", METHOD_TYPE_OBJECT },
+    { 324, "GetTouchPadCount", METHOD_TYPE_INT },
+    { 325, "GetTouchScreenCount", METHOD_TYPE_INT },
+    { 326, "GetTrackBallCount", METHOD_TYPE_INT },
+    { 327, "GetVibratorCount", METHOD_TYPE_INT },
     { 328, "GetVirtualKeyboardCount", METHOD_TYPE_OBJECT },
+    { 329, "GetApplicationVersionCode", METHOD_TYPE_INT },
+    { 330, "GetApplicationVersion", METHOD_TYPE_OBJECT },
+    { 331, "GetFirmware", METHOD_TYPE_OBJECT },
+    { 332, "GetHardwareFloatingPointSupport", METHOD_TYPE_OBJECT },
 
     // Class initializers
     { 401, "com/ea/blast/SystemAndroidDelegate/<init>", METHOD_TYPE_OBJECT },
@@ -141,7 +57,10 @@ NameToMethodID nameToMethodId[] = {
     { 403, "com/ea/blast/DisplayAndroidDelegate/<init>", METHOD_TYPE_OBJECT },
     { 404, "com/ea/blast/DeviceOrientationHandlerAndroidDelegate/<init>", METHOD_TYPE_OBJECT },
     { 405, "com/ea/blast/GetAppDataDirectoryDelegate/<init>", METHOD_TYPE_OBJECT },
-    { 405, "com/ea/blast/AccelerometerAndroidDelegate/<init>", METHOD_TYPE_OBJECT },
+    { 406, "com/ea/EAMIO/StorageDirectory/<init>", METHOD_TYPE_OBJECT },
+    { 407, "com/ea/blast/AccelerometerAndroidDelegate/<init>", METHOD_TYPE_OBJECT },
+    { 408, "com/ea/blast/VirtualKeyboardAndroidDelegate/<init>", METHOD_TYPE_OBJECT },
+    { 409, "com/ea/blast/PhysicalKeyboardAndroidDelegate/<init>", METHOD_TYPE_OBJECT },
 
     // AssetManager and java.io.InputStream
     { 600, "read", METHOD_TYPE_INT },
@@ -174,19 +93,23 @@ NameToMethodID nameToMethodId[] = {
     { 116, "play", METHOD_TYPE_VOID },
     { 117, "stop", METHOD_TYPE_VOID },
     { 118, "write", METHOD_TYPE_INT },
+
+    { 119, "IsNavigationVisible", METHOD_TYPE_BOOLEAN },
+    { 120, "IsVisible", METHOD_TYPE_BOOLEAN },
+
+    { 700, "GetInternalStorageDirectory", METHOD_TYPE_OBJECT },
+    { 701, "GetPrimaryExternalStorageDirectory", METHOD_TYPE_OBJECT },
+    { 702, "GetPrimaryExternalStorageState", METHOD_TYPE_OBJECT },
+    { 703, "GetDedicatedDirectory", METHOD_TYPE_OBJECT },
+    { 704, "getPackage", METHOD_TYPE_OBJECT },
+    { 705, "getContentPath", METHOD_TYPE_OBJECT },
+
+    { 999, "finish", METHOD_TYPE_VOID }
 };
-
-/*
- *
-[JNI] GetStaticMethodID(env, clazz, "GetInstance", "()Lcom/ea/blast/MainActivity;"): unknown method name
-CallStaticObjectMethodV 0
-[JNI] GetMethodID(env, clazz, "getAssets", "()Landroid/content/res/AssetManager;"): unknown method name
-
- */
 
 extern void (*Java_com_ea_EAIO_EAIO_Startup)(JNIEnv*, void*, jobject);
 // com/ea/EAIO/EAIO/Startup
-void ea_EAIO_Startup(int id, va_list args) {
+void ea_EAIO_Startup(jmethodID id, va_list args) {
     void* assetManager = va_arg(args, void*);
     debugPrintf("JNI: Method Call: com/ea/EAIO/EAIO/Startup(AssetManager: 0x%x) / id: %i\n", (int)assetManager, id);
 
@@ -194,14 +117,14 @@ void ea_EAIO_Startup(int id, va_list args) {
 }
 
 // com/ea/blast/MainActivity/GetInstance
-jobject ea_blast_MainActivity_GetInstance(int id, va_list args) {
+jobject ea_blast_MainActivity_GetInstance(jmethodID id, va_list args) {
     void* assetManager = va_arg(args, void*);
     debugPrintf("JNI: Method Call: com/ea/blast/MainActivity/GetInstance() / id: %i\n", id);
     return strdup("MainActivityInstance");
 }
 
 // 	com/android/content/Context/getAssets
-jobject android_content_Context_getAssets(int id, va_list args) {
+jobject android_content_Context_getAssets(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/android/content/Context/getAssets() / id: %i\n", id);
     return strdup("getAssetsInstance");
 }
@@ -223,223 +146,278 @@ const char* _string_en = "en";
 
 
 // 	com/ea/blast/SystemAndroidDelegate/GetAccelerometerCount
-jobject ea_blast_SystemAndroidDelegate_GetAccelerometerCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetAccelerometerCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetAccelerometerCount() / id: %i\n", id);
 
-    return (jobject)_string_1;
+    return 1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/IsBatteryStateAvailable
-jobject ea_blast_SystemAndroidDelegate_IsBatteryStateAvailable(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_IsBatteryStateAvailable(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/IsBatteryStateAvailable() / id: %i\n", id);
 
     return (jobject)_string_0;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetCameraCount
-jobject ea_blast_SystemAndroidDelegate_GetCameraCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetCameraCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetCameraCount() / id: %i\n", id);
 
-    return (jobject)_string_0;
+    return 0;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetChipset
-jobject ea_blast_SystemAndroidDelegate_GetChipset(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetChipset(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetChipset() / id: %i\n", id);
 
     return (jobject)_string_0;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetCompassCount
-jobject ea_blast_SystemAndroidDelegate_GetCompassCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetCompassCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetCompassCount() / id: %i\n", id);
 
-    return (jobject)_string_0;
+    return 0;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetManufacturer
-jobject ea_blast_SystemAndroidDelegate_GetManufacturer(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetManufacturer(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetManufacturer() / id: %i\n", id);
 
     return (jobject)_string_manufacturer;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetDeviceModel
-jobject ea_blast_SystemAndroidDelegate_GetDeviceModel(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetDeviceModel(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetDeviceModel() / id: %i\n", id);
 
     return (jobject)_string_devicemodel;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetDeviceName
-jobject ea_blast_SystemAndroidDelegate_GetDeviceName(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetDeviceName(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetDeviceName() / id: %i\n", id);
 
     return (jobject)_string_devicename;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetPhoneNumber
-jobject ea_blast_SystemAndroidDelegate_GetPhoneNumber(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetPhoneNumber(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetPhoneNumber() / id: %i\n", id);
 
     return (jobject)_string_0;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetDeviceSubscriberID
-jobject ea_blast_SystemAndroidDelegate_GetDeviceSubscriberID(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetDeviceSubscriberID(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetDeviceSubscriberID() / id: %i\n", id);
 
     return (jobject)_string_0;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetDeviceUniqueId
-jobject ea_blast_SystemAndroidDelegate_GetDeviceUniqueId(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetDeviceUniqueId(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetDeviceUniqueId() / id: %i\n", id);
 
     return (jobject)_string_minus1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetDisplayCount
-jobject ea_blast_SystemAndroidDelegate_GetDisplayCount(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetDisplayCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetDisplayCount() / id: %i\n", id);
 
     return (jobject)_string_1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetGyroscopeCount
-jobject ea_blast_SystemAndroidDelegate_GetGyroscopeCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetGyroscopeCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetGyroscopeCount() / id: %i\n", id);
 
-    return (jobject)_string_1;
+    return 1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetLocationAvailable
-jobject ea_blast_SystemAndroidDelegate_GetLocationAvailable(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetLocationAvailable(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetLocationAvailable() / id: %i\n", id);
 
     return (jobject)_string_true;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetMicrophoneCount
-jobject ea_blast_SystemAndroidDelegate_GetMicrophoneCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetMicrophoneCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetMicrophoneCount() / id: %i\n", id);
 
-    return (jobject)_string_1;
+    return 1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetApiLevel
-jobject ea_blast_SystemAndroidDelegate_GetApiLevel(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetApiLevel(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetApiLevel() / id: %i\n", id);
 
     return (jobject)_string_19;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetPlatformRawName
-jobject ea_blast_SystemAndroidDelegate_GetPlatformRawName(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetPlatformRawName(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetPlatformRawName() / id: %i\n", id);
 
     return (jobject)_string_android;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetPlatformStdName
-jobject ea_blast_SystemAndroidDelegate_GetPlatformStdName(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetPlatformStdName(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetPlatformStdName() / id: %i\n", id);
 
     return (jobject)_string_android;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetPlatformVersion
-jobject ea_blast_SystemAndroidDelegate_GetPlatformVersion(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetPlatformVersion(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetPlatformVersion() / id: %i\n", id);
 
     return (jobject)_string_release;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetPhysicalKeyboardCount
-jobject ea_blast_SystemAndroidDelegate_GetPhysicalKeyboardCount(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetPhysicalKeyboardCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetPhysicalKeyboardCount() / id: %i\n", id);
 
     return (jobject)_string_1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetProcessorArchitecture
-jobject ea_blast_SystemAndroidDelegate_GetProcessorArchitecture(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetProcessorArchitecture(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetProcessorArchitecture() / id: %i\n", id);
 
     return (jobject)_string_cpuarch;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetLanguage
-jobject ea_blast_SystemAndroidDelegate_GetLanguage(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetLanguage(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetLanguage() / id: %i\n", id);
     // TODO: Check for system language
     return (jobject)_string_en;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetLocale
-jobject ea_blast_SystemAndroidDelegate_GetLocale(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetLocale(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetLocale() / id: %i\n", id);
     // TODO: Check for system language
     return (jobject)_string_en;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetTotalRAM
-jobject ea_blast_SystemAndroidDelegate_GetTotalRAM(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetTotalRAM(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetTotalRAM() / id: %i\n", id);
 
     return (jobject)_string_minus1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetTouchPadCount
-jobject ea_blast_SystemAndroidDelegate_GetTouchPadCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetTouchPadCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetTouchPadCount() / id: %i\n", id);
 
-    return (jobject)_string_1;
+    return 1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetTouchScreenCount
-jobject ea_blast_SystemAndroidDelegate_GetTouchScreenCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetTouchScreenCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetTouchScreenCount() / id: %i\n", id);
 
-    return (jobject)_string_1;
+    return 1;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetTrackBallCount
-jobject ea_blast_SystemAndroidDelegate_GetTrackBallCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetTrackBallCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetTrackBallCount() / id: %i\n", id);
 
-    return (jobject)_string_0;
+    return 0;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetVibratorCount
-jobject ea_blast_SystemAndroidDelegate_GetVibratorCount(int id, va_list args) {
+jint ea_blast_SystemAndroidDelegate_GetVibratorCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetVibratorCount() / id: %i\n", id);
     // TODO: Support for DualShock vibrator?
-    return (jobject)_string_0;
+    return 0;
+}
+
+// 	com/ea/blast/SystemAndroidDelegate/GetVibratorCount
+jint ea_blast_SystemAndroidDelegate_GetApplicationVersionCode(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetApplicationVersionCode() / id: %i\n", id);
+    return 42;
 }
 
 // 	com/ea/blast/SystemAndroidDelegate/GetVirtualKeyboardCount
-jobject ea_blast_SystemAndroidDelegate_GetVirtualKeyboardCount(int id, va_list args) {
+jobject ea_blast_SystemAndroidDelegate_GetVirtualKeyboardCount(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetVirtualKeyboardCount() / id: %i\n", id);
-    // TODO: Support for DualShock vibrator?
+    return (jobject)_string_1;
+}
+
+// 	com/ea/blast/SystemAndroidDelegate/GetApplicationVersionCode
+jobject ea_blast_SystemAndroidDelegate_GetApplicationVersion(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetApplicationVersion() / id: %i\n", id);
+    return (jobject)_string_1;
+}
+// 	com/ea/blast/SystemAndroidDelegate/GetHardwareFloatingPointSupport
+jobject ea_blast_SystemAndroidDelegate_GetHardwareFloatingPointSupport(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetHardwareFloatingPointSupport() / id: %i\n", id);
+    return (jobject)_string_true;
+}
+
+// 	com/ea/blast/SystemAndroidDelegate/GetFirmware
+jobject ea_blast_SystemAndroidDelegate_GetFirmware(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: com/ea/blast/SystemAndroidDelegate/GetFirmware() / id: %i\n", id);
     return (jobject)_string_1;
 }
 
 // 	com/ea/blast/GetAppDataDirectoryDelegate/GetAppDataDirectory
-jobject GetAppDataDirectory(int id, va_list args) {
+jobject GetAppDataDirectory(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: GetAppDataDirectory() / id: %i\n", id);
     char * dir = DATA_PATH;
     return (jobject) strdup(dir);
 }
 
 // 	com/ea/blast/GetAppDataDirectoryDelegate/GetExternalStorageDirectory
-jobject GetExternalStorageDirectory(int id, va_list args) {
+jobject GetExternalStorageDirectory(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: GetExternalStorageDirectory() / id: %i\n", id);
     char * dir = DATA_PATH;
-    return (jobject) strdup(dir);
+    return (jobject) strdup("nagaba");
 }
 
-jobject dummyConstructor(int id, va_list args) {
+jobject GetInternalStorageDirectory(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: GetInternalStorageDirectory() / id: %i\n", id);
+    return (jobject) strdup("ux0:data/masseffect/assets/");
+}
+
+jobject GetPrimaryExternalStorageDirectory(jmethodID id, va_list args) {
+    //debugPrintf("JNI: Method Call: GetPrimaryExternalStorageDirectory() / id: %i\n", id);
+    return (jobject) strdup("ux0:data/masseffect/assets/");
+}
+
+jobject getContentPath(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: getContentPath() / id: %i\n", id);
+    return (jobject) strdup("ux0:data/masseffect/assets/");
+}
+
+#define MEDIA_MOUNTED "mounted"
+
+jobject GetPrimaryExternalStorageState(jmethodID id, va_list args) {
+    //debugPrintf("JNI: Method Call: GetPrimaryExternalStorageState() / id: %i\n", id);
+    return (jobject) strdup(MEDIA_MOUNTED);
+}
+
+jobject GetDedicatedDirectory(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: GetDedicatedDirectory() / id: %i\n", id);
+    return (jobject) strdup("files");
+}
+
+jobject getPackage(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: getPackage() / id: %i\n", id);
+    return (jobject) strdup("com.ea.games.meinfiltrator");
+}
+
+
+jobject dummyConstructor(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: <init>() / id: %i\n", id);
     // There might be an attempt to free this object; anyway, we can safely
     // leak a few bytes here.
@@ -448,93 +426,107 @@ jobject dummyConstructor(int id, va_list args) {
     return (jobject)dummy;
 }
 
-jboolean isContentReady(int id, va_list args) {
+jboolean isContentReady(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: isContentReady() / id: %i\n", id);
     return JNI_TRUE;
 }
 
-jboolean IsTouchScreenMultiTouch(int id, va_list args) {
+jboolean IsTouchScreenMultiTouch(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: IsTouchScreenMultiTouch() / id: %i\n", id);
     return JNI_TRUE;
 }
 
+jboolean IsNavigationVisible(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: IsNavigationVisible() / id: %i\n", id);
+    return JNI_FALSE;
+}
+
+jboolean IsVisible(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: IsVisible() / id: %i\n", id);
+    return JNI_TRUE;
+}
+
 // com/eamobile/Query/getVersion
-jobject getVersion(int id, va_list args) {
+jobject getVersion(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: getVersion() / id: %i\n", id);
     return (jobject) strdup("1.0.1");
 }
 
 // com/ea/blast/PowerManagerAndroid/ApplyKeepAwake
-void ApplyKeepAwake(int id, va_list args) {
+void ApplyKeepAwake(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: ApplyKeepAwake() / id: %i\n", id);
     // TODO: Maybe it really is needed to keep the device awake here?
 }
 
 // com/ea/blast/DisplayAndroidDelegate.java
-int GetStdOrientation(int id, va_list args) {
+int GetStdOrientation(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: GetStdOrientation() / id: %i\n", id);
     // TODO: Maybe other values is needed? 0-3
-    return 0;
+    return 8;
+    // 4 0 2 8 1
 }
 
-int GetDefaultWidth(int id, va_list args) {
+int GetDefaultWidth(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: GetDefaultWidth() / id: %i\n", id);
-    return 544;
-}
-
-int GetDefaultHeight(int id, va_list args) {
-    debugPrintf("JNI: Method Call: GetDefaultHeight() / id: %i\n", id);
-
     return 960;
 }
 
-float GetDpiX(int id, va_list args) {
+int GetDefaultHeight(jmethodID id, va_list args) {
+    debugPrintf("JNI: Method Call: GetDefaultHeight() / id: %i\n", id);
+
+    return 544;
+}
+
+float GetDpiX(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: GetDpiX() / id: %i\n", id);
     return 200.0f;
 }
 
-float GetDpiY(int id, va_list args) {
+float GetDpiY(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: GetDpiY() / id: %i\n", id);
     return 200.0f;
 }
 
 // com/ea/blast/DeviceOrientationHandlerAndroidDelegate/SetStdOrientation
-void SetStdOrientation(int id, va_list args) {
+void SetStdOrientation(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: SetStdOrientation() / id: %i\n", id);
     // We don't support changing orientation, ignore.
 }
 
 // com/ea/blast/DeviceOrientationHandlerAndroidDelegate/OnLifeCycleFocusGained
-void OnLifeCycleFocusGained(int id, va_list args) {
+void OnLifeCycleFocusGained(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: OnLifeCycleFocusGained() / id: %i\n", id);
     // We don't support changing orientation, ignore.
 }
 
 // com/ea/blast/AccelerometerAndroidDelegate/SetEnabled
 // com/ea/blast/DeviceOrientationHandlerAndroidDelegate/SetEnabled
-void SetEnabled(int id, va_list args) {
+void SetEnabled(jmethodID id, va_list args) {
     // We deal with acceletometer stuff other way, ignore
     // We don't support changing orientation, ignore.
 }
 
 // com/ea/blast/AccelerometerAndroidDelegate/SetUpdateFrequency
-void SetUpdateFrequency(int id, va_list args) {
+void SetUpdateFrequency(jmethodID id, va_list args) {
     // We deal with acceletometer stuff other way, ignore
 }
 
+//
+void finish(jmethodID id, va_list args) {
+    fprintf(stderr, "MainActivity.finish();");
+    abort();
+}
+
 // com/eamobile/Query/getTotalMemory
-jlong getTotalMemory(int id, va_list args) {
+jlong getTotalMemory(jmethodID id, va_list args) {
     return 256;
 }
 
 MethodsObject methodsObject[] = {
     { 220, ea_blast_MainActivity_GetInstance },
     { 221, android_content_Context_getAssets },
-    { 300, ea_blast_SystemAndroidDelegate_GetAccelerometerCount },
     { 301, ea_blast_SystemAndroidDelegate_IsBatteryStateAvailable },
-    { 302, ea_blast_SystemAndroidDelegate_GetCameraCount },
     { 303, ea_blast_SystemAndroidDelegate_GetChipset },
-    { 304, ea_blast_SystemAndroidDelegate_GetCompassCount },
     { 305, ea_blast_SystemAndroidDelegate_GetManufacturer },
     { 306, ea_blast_SystemAndroidDelegate_GetDeviceModel },
     { 307, ea_blast_SystemAndroidDelegate_GetDeviceName },
@@ -542,9 +534,9 @@ MethodsObject methodsObject[] = {
     { 309, ea_blast_SystemAndroidDelegate_GetDeviceSubscriberID },
     { 310, ea_blast_SystemAndroidDelegate_GetDeviceUniqueId },
     { 311, ea_blast_SystemAndroidDelegate_GetDisplayCount },
-    { 312, ea_blast_SystemAndroidDelegate_GetGyroscopeCount },
+
     { 313, ea_blast_SystemAndroidDelegate_GetLocationAvailable },
-    { 314, ea_blast_SystemAndroidDelegate_GetMicrophoneCount },
+
     { 315, ea_blast_SystemAndroidDelegate_GetApiLevel },
     { 316, ea_blast_SystemAndroidDelegate_GetPlatformRawName },
     { 317, ea_blast_SystemAndroidDelegate_GetPlatformStdName },
@@ -554,17 +546,21 @@ MethodsObject methodsObject[] = {
     { 321, ea_blast_SystemAndroidDelegate_GetLanguage },
     { 322, ea_blast_SystemAndroidDelegate_GetLocale },
     { 323, ea_blast_SystemAndroidDelegate_GetTotalRAM },
-    { 324, ea_blast_SystemAndroidDelegate_GetTouchPadCount },
-    { 325, ea_blast_SystemAndroidDelegate_GetTouchScreenCount },
-    { 326, ea_blast_SystemAndroidDelegate_GetTrackBallCount },
-    { 327, ea_blast_SystemAndroidDelegate_GetVibratorCount },
+
     { 328, ea_blast_SystemAndroidDelegate_GetVirtualKeyboardCount },
+    { 330, ea_blast_SystemAndroidDelegate_GetApplicationVersion },
+    { 331, ea_blast_SystemAndroidDelegate_GetFirmware },
+    { 332, ea_blast_SystemAndroidDelegate_GetHardwareFloatingPointSupport },
     // dummy constructor
     { 401, dummyConstructor },
     { 402, dummyConstructor },
     { 403, dummyConstructor },
     { 404, dummyConstructor },
     { 405, dummyConstructor },
+    { 406, dummyConstructor },
+    { 407, dummyConstructor },
+    { 408, dummyConstructor },
+    { 409, dummyConstructor },
     // fdf
 
     { 602, InputStream_skip },
@@ -574,7 +570,14 @@ MethodsObject methodsObject[] = {
     // x
     { 107, GetAppDataDirectory },
     { 108, GetExternalStorageDirectory },
-    { 113, getVersion }
+    { 113, getVersion },
+
+    { 700, GetInternalStorageDirectory },
+    { 701, GetPrimaryExternalStorageDirectory },
+    { 702, GetPrimaryExternalStorageState },
+    { 703, GetDedicatedDirectory },
+    { 704, getPackage },
+    { 705, getContentPath },
 };
 
 MethodsLong methodsLong[] = {
@@ -583,6 +586,20 @@ MethodsLong methodsLong[] = {
 };
 
 MethodsInt methodsInt[] = {
+        { 300, ea_blast_SystemAndroidDelegate_GetAccelerometerCount },
+
+        { 302, ea_blast_SystemAndroidDelegate_GetCameraCount },
+
+        { 304, ea_blast_SystemAndroidDelegate_GetCompassCount },
+
+        { 312, ea_blast_SystemAndroidDelegate_GetGyroscopeCount },
+        { 314, ea_blast_SystemAndroidDelegate_GetMicrophoneCount },
+        { 324, ea_blast_SystemAndroidDelegate_GetTouchPadCount },
+        { 325, ea_blast_SystemAndroidDelegate_GetTouchScreenCount },
+        { 326, ea_blast_SystemAndroidDelegate_GetTrackBallCount },
+        { 327, ea_blast_SystemAndroidDelegate_GetVibratorCount },
+        { 329, ea_blast_SystemAndroidDelegate_GetApplicationVersionCode },
+
     { 102, GetStdOrientation },
     { 103, GetDefaultWidth },
     { 104, GetDefaultHeight },
@@ -605,18 +622,14 @@ MethodsVoid methodsVoid[] = {
     { 115, SetUpdateFrequency },
     { 116, EAAudioCore_AudioTrack_play },
     { 117, EAAudioCore_AudioTrack_stop },
+    { 999, finish }
 };
 
 MethodsBoolean methodsBoolean[] = {
     { 100, isContentReady },
-    { 112, IsTouchScreenMultiTouch }
-};
-
-FieldTypeMap fieldTypeMap[] = {
-    { "Ljava/lang/String;", FIELD_TYPE_STRING },
-    { "[I", FIELD_TYPE_INT_ARRAY },
-    { "I", FIELD_TYPE_INT },
-    { "Z", FIELD_TYPE_BOOLEAN }
+    { 112, IsTouchScreenMultiTouch },
+    { 119, IsNavigationVisible },
+    { 120, IsVisible }
 };
 
 NameToFieldID nameToFieldId[] = {
@@ -658,274 +671,41 @@ FieldsIntArray fieldsIntArray[] = {
     { 5, _fieldIntArray5_value, sizeof(_fieldIntArray5_value) / sizeof (int) },
 };
 
-const char* fieldStringGet(int id) {
-    for (int i = 0; i < sizeof(fieldsString) / sizeof(FieldsString); i++) {
-        if (fieldsString[i].id == id) {
-            return fieldsString[i].value;
-        }
-    }
-    return NULL;
-}
+MethodsByte methodsByte[] = {};
+MethodsChar methodsChar[] = {};
+MethodsDouble methodsDouble[] = {};
+MethodsShort methodsShort[] = {};
 
-const int* fieldIntGet(int id) {
-    for (int i = 0; i < sizeof(fieldsInt) / sizeof(FieldsInt); i++) {
-        if (fieldsInt[i].id == id) {
-            return &fieldsInt[i].value;
-        }
-    }
-    return NULL;
-}
+FieldsByte fieldsByte[] = {};
+FieldsChar fieldsChar[] = {};
+FieldsDouble fieldsDouble[] = {};
+FieldsFloat fieldsFloat[] = {};
 
-const jboolean * fieldBoolGet(int id) {
-    for (int i = 0; i < sizeof(fieldsBoolean) / sizeof(FieldsBoolean); i++) {
-        if (fieldsBoolean[i].id == id) {
-            return &fieldsBoolean[i].value;
-        }
-    }
-    return NULL;
-}
+FieldsLong fieldsLong[] = {};
+FieldsShort fieldsShort[] = {};
 
-const int* fieldIntArrayGet(int id) {
-    for (int i = 0; i < sizeof(fieldsIntArray) / sizeof(FieldsIntArray); i++) {
-        if (fieldsIntArray[i].id == id) {
-            return fieldsIntArray[i].value;
-        }
-    }
-    return NULL;
-}
+size_t nameToMethodId_size() { return sizeof nameToMethodId; }
 
-jsize* fieldIntArrayGetLengthByPtr(const int * arr) {
-    for (int i = 0; i < sizeof(fieldsIntArray) / sizeof(FieldsIntArray); i++) {
-        if (fieldsIntArray[i].value == arr) {
-            fprintf(stderr, "found array: id #%i\n", fieldsIntArray[i].id);
-            return &fieldsIntArray[i].length;
-        }
-    }
-    //fprintf(stderr, "not found int array\n");
-    return NULL;
-}
+size_t methodsBoolean_size() { return sizeof methodsBoolean; }
+size_t methodsByte_size() { return sizeof methodsByte; }
+size_t methodsChar_size() { return sizeof methodsChar; }
+size_t methodsDouble_size() { return sizeof methodsDouble; }
+size_t methodsFloat_size() { return sizeof methodsFloat; }
+size_t methodsInt_size() { return sizeof methodsInt; }
+size_t methodsLong_size() { return sizeof methodsLong; }
+size_t methodsObject_size() { return sizeof methodsObject; }
+size_t methodsShort_size() { return sizeof methodsShort; }
+size_t methodsVoid_size() { return sizeof methodsVoid; }
 
+size_t nameToFieldId_size() { return sizeof nameToFieldId; }
 
-int getFieldIdByName(const char* name) {
-    for (int i = 0; i < sizeof(nameToFieldId) / sizeof(NameToFieldID); i++) {
-        if (strcmp(name, nameToFieldId[i].name) == 0) {
-            debugPrintf("resolved to id %i\n", nameToFieldId[i].id);
-            return nameToFieldId[i].id;
-        }
-    }
-
-    debugPrintf("unknown field name\n");
-    return 0;
-}
-
-jobject getObjectFieldValueById(int id) {
-    for (int i = 0; i < sizeof(nameToFieldId) / sizeof(NameToFieldID); i++) {
-        if (nameToFieldId[i].id == id) {
-            switch (nameToFieldId[i].f) {
-                case FIELD_TYPE_STRING: {
-                    const char *ret = fieldStringGet((int)id);
-                    if (ret) {
-                        debugPrintf("\"%s\"\n", ret);
-                        return (jobject)ret;
-                    }
-                    debugPrintf("String value for \"%s\" not found!\n", nameToFieldId[i].name);
-                    return NULL;
-                }
-                case FIELD_TYPE_BOOLEAN: {
-                    const jboolean *ret = fieldBoolGet((int)id);
-                    if (ret) {
-                        if (*ret == JNI_TRUE) {
-                            debugPrintf("(bool)true\n");
-                        } else {
-                            debugPrintf("(bool)false\n");
-                        }
-
-                        return (jobject)ret;
-                    }
-                    debugPrintf("Boolean value for \"%s\" not found!\n", nameToFieldId[i].name);
-                    return NULL;
-                }
-                case FIELD_TYPE_INT: {
-                    const int *ret = fieldIntGet((int)id);
-                    if (ret) {
-                        debugPrintf("(int)%i\n", *ret);
-                        return (jobject)ret;
-                    }
-                    debugPrintf("Int value for \"%s\" not found!\n", nameToFieldId[i].name);
-                    return NULL;
-                }
-                case FIELD_TYPE_INT_ARRAY: {
-                    const int *ret = fieldIntArrayGet((int)id);
-                    if (ret) {
-                        debugPrintf("int[\"%i\"]\n", sizeof(ret));
-                        return (jobject)ret;
-                    }
-                    debugPrintf("Int array value for \"%s\" not found!\n", nameToFieldId[i].name);
-                    return NULL;
-                }
-                case FIELD_TYPE_UNKNOWN:
-                default:
-                    debugPrintf("Unknown field type for \"%s\"!\n", nameToFieldId[i].name);
-                    return NULL;
-            }
-        }
-    }
-
-    debugPrintf("unknown field id!\n");
-    return NULL;
-}
-
-
-jint getIntFieldValueById(int id) {
-    for (int i = 0; i < sizeof(nameToFieldId) / sizeof(NameToFieldID); i++) {
-        if (nameToFieldId[i].id == id) {
-            switch (nameToFieldId[i].f) {
-                case FIELD_TYPE_INT: {
-                    const int * x = fieldIntGet(id);
-                    if (!x) {
-                        debugPrintf("Int field not found!\n");
-                        return 0;
-                    } else {
-                        debugPrintf("\"%i\"\n", *x);
-                        return *x;
-                    }
-                }
-                default:
-                    debugPrintf("Unknown field type for \"%s\"!\n", nameToFieldId[i].name);
-                    return 0;
-            }
-        }
-    }
-
-    debugPrintf("unknown field id!\n");
-    return 0;
-}
-
-jboolean getBooleanFieldValueById(int id) {
-    for (int i = 0; i < sizeof(nameToFieldId) / sizeof(NameToFieldID); i++) {
-        if (nameToFieldId[i].id == id) {
-            switch (nameToFieldId[i].f) {
-                case FIELD_TYPE_BOOLEAN: {
-                    const jboolean *ret = fieldBoolGet((int)id);
-                    if (ret) {
-                        if (*ret == JNI_TRUE) {
-                            debugPrintf("(bool)true\n");
-                        } else {
-                            debugPrintf("(bool)false\n");
-                        }
-
-                        return (jboolean)*ret;
-                    }
-                    debugPrintf("Boolean value for \"%s\" not found!\n", nameToFieldId[i].name);
-                    return 0;
-                }
-                default:
-                    debugPrintf("Unknown field type for \"%s\"!\n", nameToFieldId[i].name);
-                    return 0;
-            }
-        }
-    }
-
-    debugPrintf("unknown field id!\n");
-    return 0;
-}
-
-int getMethodIdByName(const char* name) {
-    for (int i = 0; i < sizeof(nameToMethodId) / sizeof(NameToMethodID); i++) {
-        if (strcmp(name, nameToMethodId[i].name) == 0) {
-            debugPrintf("resolved to id %i\n", nameToMethodId[i].id);
-            return nameToMethodId[i].id;
-        }
-    }
-
-    debugPrintf("unknown method name\n");
-    return 0;
-}
-
-jobject methodObjectCall(int id, va_list args) {
-    for (int i = 0; i < sizeof(methodsObject) / sizeof(MethodsObject); i++) {
-        if (methodsObject[i].id == id) {
-            debugPrintf("resolved : ");
-            jobject ret = methodsObject[i].Method(id, args);
-            debugPrintf("0x%x\n", (int)ret);
-            return ret;
-        }
-    }
-
-    for (int i = 0; i < sizeof(methodsBoolean) / sizeof(MethodsBoolean); i++) {
-        if (methodsBoolean[i].id == id) {
-            debugPrintf("resolved : ");
-            jobject ret = (jobject)(int)methodsBoolean[i].Method(id, args);
-            debugPrintf("0x%x\n", (int)ret);
-            return ret;
-        }
-    }
-
-    debugPrintf("method ID not found!\n");
-    return NULL;
-}
-
-void methodVoidCall(int id, va_list args) {
-    for (int i = 0; i < sizeof(methodsVoid) / sizeof(MethodsVoid); i++) {
-        if (methodsVoid[i].id == id) {
-            debugPrintf("resolved.\n");
-            return methodsVoid[i].Method(id, args);
-        }
-    }
-
-    debugPrintf("method ID not found!\n");
-}
-
-jboolean methodBooleanCall(int id, va_list args) {
-    for (int i = 0; i < sizeof(methodsBoolean) / sizeof(MethodsBoolean); i++) {
-        if (methodsBoolean[i].id == id) {
-            debugPrintf("resolved.\n");
-            return methodsBoolean[i].Method(id, args);
-        }
-    }
-
-    debugPrintf("not found!\n");
-    return JNI_FALSE;
-}
-
-jlong methodLongCall(int id, va_list args) {
-    for (int i = 0; i < sizeof(methodsLong) / sizeof(MethodsLong); i++) {
-        if (methodsLong[i].id == id) {
-            debugPrintf("resolved.\n");
-            return methodsLong[i].Method(id, args);
-        }
-    }
-
-    debugPrintf("not found!\n");
-    return -1;
-}
-
-jint methodIntCall(int id, va_list args) {
-    for (int i = 0; i < sizeof(methodsInt) / sizeof(MethodsInt); i++) {
-        if (methodsInt[i].id == id) {
-            //debugPrintf("resolved.\n");
-            return methodsInt[i].Method(id, args);
-        }
-    }
-
-    //debugPrintf("not found!\n");
-    return -1;
-}
-
-jfloat methodFloatCall(int id, va_list args) {
-    for (int i = 0; i < sizeof(methodsFloat) / sizeof(MethodsFloat); i++) {
-        if (methodsFloat[i].id == id) {
-            debugPrintf("resolved.\n");
-            return methodsFloat[i].Method(id, args);
-        }
-    }
-
-    debugPrintf("not found!\n");
-    return -1;
-}
-
-#ifdef __cplusplus
-};
-#endif
-
-#endif // SOLOADER_JNI_SPECIFIC_H
+size_t fieldsBoolean_size() { return sizeof fieldsBoolean; }
+size_t fieldsByte_size() { return sizeof fieldsByte; }
+size_t fieldsChar_size() { return sizeof fieldsChar; }
+size_t fieldsDouble_size() { return sizeof fieldsDouble; }
+size_t fieldsFloat_size() { return sizeof fieldsFloat; }
+size_t fieldsInt_size() { return sizeof fieldsInt; }
+size_t fieldsIntArray_size() { return sizeof fieldsIntArray; }
+size_t fieldsLong_size() { return sizeof fieldsLong; }
+size_t fieldsShort_size() { return sizeof fieldsShort; }
+size_t fieldsString_size() { return sizeof fieldsString; }

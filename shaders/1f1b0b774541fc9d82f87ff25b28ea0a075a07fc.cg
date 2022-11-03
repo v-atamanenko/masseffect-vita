@@ -1,0 +1,41 @@
+uniform float4x4 g_WorldViewProjection;
+uniform float g_TextureScale0;
+uniform float2 g_TextureBias0;
+uniform float3 g_CameraPosition;
+uniform float4x4 g_World;
+uniform float4 g_UniformColour;
+uniform float4 g_AmbientColor;
+uniform float4 g_FresnelColor;
+uniform float g_FresnelPower;
+uniform float g_FogEnd;
+uniform float g_FogRangeInv;
+uniform float4 g_FogColor;
+
+void main(
+    float3 vs_Position,
+    float2 vs_TexCoord0,
+    float3 vs_Normals,
+    float2 out TexCoord0 : TEXCOORD0,
+    float3 out CameraDir : TEXCOORD1,
+    float4 out UniformCol : COLOR,
+    float4 out FresnelCol : TEXCOORD4,
+    float out FogFactor : TEXCOORD5,
+    float4 out FogFactorColor : TEXCOORD6,
+    float4 out gl_Position : POSITION
+) {
+    float temporary;
+    float4 temporary2;
+    float3 temporary3;
+    float4 temporary4;
+    temporary2 = float4(vs_Position, 1.00);
+    UniformCol = ((g_UniformColour) * (g_AmbientColor));
+    TexCoord0 = ((vs_TexCoord0 * g_TextureScale0) + g_TextureBias0);
+    temporary4 = mul(temporary2, g_WorldViewProjection);
+    temporary3 = (g_CameraPosition - (mul(temporary2, g_World)).xyz);
+    temporary = clamp((g_FogEnd - temporary4.w) * g_FogRangeInv, 0.0, 1.0);
+    gl_Position = temporary4;
+    FresnelCol = float4(g_FresnelColor.xyz * exp2(2.0 * g_FresnelPower * log2(1.01 - min(1.0, dot(normalize(temporary3), normalize(mul(vs_Normals, float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz))))))), 0);
+    CameraDir = temporary3;
+    FogFactorColor = ((1.0 - temporary) * g_FogColor);
+    FogFactor = temporary;
+}

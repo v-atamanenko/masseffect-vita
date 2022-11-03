@@ -1,0 +1,14 @@
+uniform float g_LODBias;
+uniform sampler2D g_Texture0;
+uniform sampler2D g_Texture1;
+uniform samplerCUBE g_CubeMap;
+uniform float g_CubeMapLevel;
+
+float4 main(
+    float2 TexCoord0 : TEXCOORD0,
+    float3 CameraDir : TEXCOORD1,
+    float3 Normals : TEXCOORD2,
+    float4 UniformCol : COLOR
+) {
+    return ((tex2Dbias(g_Texture0, float4(TexCoord0, 1.0, g_LODBias)) * UniformCol) + ((tex2D( g_Texture1, TexCoord0 ) * texCUBE( g_CubeMap, reflect(normalize(CameraDir), normalize(Normals)) )) * g_CubeMapLevel));
+}

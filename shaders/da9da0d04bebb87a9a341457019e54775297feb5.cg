@@ -1,0 +1,26 @@
+uniform float4x4 g_WorldViewProjection;
+uniform float g_TextureScale0;
+uniform float2 g_TextureBias0;
+uniform float4x4 g_World;
+uniform float3 g_CameraPosition;
+uniform float4 g_UniformColour;
+uniform float4 g_AmbientColor;
+
+void main(
+    float3 vs_Position,
+	float2 vs_TexCoord0,
+    float3 vs_Normals,
+    float2 out TexCoord0 : TEXCOORD0,
+    float3 out CameraDir : TEXCOORD1,
+    float3 out Normals : TEXCOORD2,
+    float4 out UniformCol : COLOR,
+    float4 out gl_Position : POSITION
+) {
+	float4 temporary;
+	temporary = float4(vs_Position, 1.00);
+	UniformCol = ((g_UniformColour) * (g_AmbientColor));
+	CameraDir = (g_CameraPosition - mul(temporary, g_World).xyz);
+	Normals = normalize(mul(vs_Normals, float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz)));
+	TexCoord0 = ((vs_TexCoord0 * g_TextureScale0) + g_TextureBias0);
+	gl_Position = mul(temporary, g_WorldViewProjection);
+}

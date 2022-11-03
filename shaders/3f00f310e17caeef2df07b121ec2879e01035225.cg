@@ -1,0 +1,11 @@
+uniform float g_LODBias;
+uniform sampler2D g_Texture0;
+
+float4 main(
+    float2 TexCoord0 : TEXCOORD0,
+    float4 UniformCol : COLOR,
+    float4 FresnelCol : TEXCOORD4,
+    float4 gl_FragCoord : WPOS
+) {
+    return ((tex2Dbias(g_Texture0, float4(TexCoord0, 1.0, g_LODBias)) * UniformCol) + FresnelCol * frac(gl_FragCoord.y * 0.2));
+}

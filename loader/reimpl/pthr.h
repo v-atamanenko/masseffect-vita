@@ -101,18 +101,18 @@ int pthread_attr_setstack_soloader(pthread_attr_t **attr,
 int pthread_attr_setschedparam_soloader(pthread_attr_t **attr,
                                         const struct sched_param *param);
 
-int sem_destroy_soloader(sem_t ** sem);
+int sem_destroy_soloader(int * sem);
 
-int sem_getvalue_soloader (sem_t ** sem, int * sval);
+int sem_getvalue_soloader (int * sem, int * sval);
 
-int sem_init_soloader (sem_t ** sem, int pshared, unsigned int value);
+int sem_init_soloader (int * sem, int pshared, unsigned int value);
 
-int sem_post_soloader (sem_t ** sem);
+int sem_post_soloader (int * sem);
 
-int sem_timedwait_soloader (sem_t ** sem, const struct timespec * abstime);
+int sem_timedwait_soloader (int * sem, const struct timespec * abstime);
 
-int sem_trywait_soloader (sem_t ** sem);
+int sem_trywait_soloader (int * sem);
 
-int sem_wait_soloader (sem_t ** sem);
+int sem_wait_soloader (int * sem);
 
 #endif // SOLOADER_PTHR_H

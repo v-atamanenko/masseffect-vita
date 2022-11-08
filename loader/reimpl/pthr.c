@@ -14,10 +14,12 @@
  */
 
 #include "pthr.h"
+#include "utils/utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <psp2/kernel/clib.h>
 #include <string.h>
+#include <psp2/kernel/threadmgr.h>
 
 #define  MUTEX_TYPE_NORMAL     0x0000
 #define  MUTEX_TYPE_RECURSIVE  0x4000
@@ -144,13 +146,15 @@ int pthread_create_soloader(pthread_t **thread,
 {
     *thread = calloc(1, sizeof(pthread_t));
 
+    printf("pthread_create start 0x%x\n", (int)start);
+
     if (attr != NULL) {
-        pthread_attr_setstacksize(*attr, 512 * 1024);
+        pthread_attr_setstacksize(*attr, 64 * 1024);
         return pthread_create(*thread, *attr, start, param);
     } else {
         pthread_attr_t attrr;
         pthread_attr_init(&attrr);
-        pthread_attr_setstacksize(&attrr, 512 * 1024);
+        pthread_attr_setstacksize(&attrr, 64 * 1024);
         return pthread_create(*thread, &attrr, start, param);
     }
 
@@ -312,47 +316,58 @@ int pthread_setname_np_soloader(const pthread_t *thread, const char* thread_name
     return 0;
 }
 
-int sem_destroy_soloader(sem_t ** sem) {
-    //fprintf(stderr, "SEMA: CALLED sem_destroy_soloader\n");
-    int ret = sem_destroy(*sem);
-    //printf("this free\n");
-    //free(sem);
-    //printf("this free2\n");
-    return ret;
+int sem_destroy_soloader(int * uid) {
+    if (sceKernelDeleteSema(*uid) < 0)
+        return -1;
+    return 0;
 }
 
-int sem_getvalue_soloader (sem_t ** sem, int * sval) {
-    //fprintf(stderr, "SEMA: CALLED sem_getvalue_soloader\n");
-    init_static_sem(sem);
-    return sem_getvalue(*sem, sval);
+int sem_getvalue_soloader (int * uid, int * sval) {
+    SceKernelSemaInfo info;
+    info.size = sizeof(SceKernelSemaInfo);
+
+    if (!sceKernelGetSemaInfo(*uid, &info)) return -1;
+    if (!sval) sval = malloc(sizeof(int32_t));
+    *sval = info.currentCount;
+    return 0;
 }
 
-int sem_init_soloader (sem_t ** sem, int pshared, unsigned int value) {
-    //fprintf(stderr, "SEMA: CALLED sem_init_soloader\n");
-    init_static_sem(sem);
-    return sem_init(*sem, pshared, value);
+int sem_init_soloader (int * uid, int pshared, unsigned int value) {
+    *uid = sceKernelCreateSema("sema", 0, value, 0x7fffffff, NULL);
+    if (*uid < 0)
+        return -1;
+    return 0;
 }
 
-int sem_post_soloader (sem_t ** sem) {
-    //fprintf(stderr, "SEMA: CALLED sem_post_soloader\n");
-    init_static_sem(sem);
-    return sem_post(*sem);
+int sem_post_soloader (int * uid) {
+    if (sceKernelSignalSema(*uid, 1) < 0)
+        return -1;
+    return 0;
 }
 
-int sem_timedwait_soloader (sem_t ** sem, const struct timespec * abstime) {
-    //fprintf(stderr, "SEMA: CALLED sem_timedwait_soloader\n");
-    init_static_sem(sem);
-    return sem_timedwait(*sem, abstime);
+int sem_timedwait_soloader (int * uid, const struct timespec * abstime) {
+    uint timeout = 1000;
+    if (sceKernelWaitSema(*uid, 1, &timeout) >= 0)
+        return 0;
+    if (!abstime) return -1;
+    long long now = current_timestamp() * 1000; // us
+    long long _timeout = abstime->tv_sec * 1000 * 1000 + abstime->tv_nsec / 1000; // us
+    if (_timeout-now >= 0) return -1;
+    uint timeout_real = _timeout - now;
+    if (sceKernelWaitSema(*uid, 1, &timeout_real) < 0)
+        return -1;
+    return 0;
 }
 
-int sem_trywait_soloader (sem_t ** sem) {
-    //fprintf(stderr, "SEMA: CALLED sem_trywait_soloader\n");
-    init_static_sem(sem);
-    return sem_trywait(*sem);
+int sem_trywait_soloader (int * uid) {
+    uint timeout = 1000;
+    if (sceKernelWaitSema(*uid, 1, &timeout) < 0)
+        return -1;
+    return 0;
 }
 
-int sem_wait_soloader (sem_t ** sem) {
-    //fprintf(stderr, "SEMA: CALLED sem_wait_soloader\n");
-    init_static_sem(sem);
-    return sem_wait(*sem);
+int sem_wait_soloader (int * uid) {
+    if (sceKernelWaitSema(*uid, 1, NULL) < 0)
+        return -1;
+    return 0;
 }

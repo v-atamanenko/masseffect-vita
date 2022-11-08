@@ -195,7 +195,10 @@ void DeleteGlobalRef(JNIEnv* env, jobject obj) {
     // a separate "destructor" for those.
 
     if (tryFreeDynamicallyAllocatedArray(obj) == JNI_FALSE) {
-        if (obj) free(obj);
+        // Reserved fake identifiers
+        if ((int)obj != 0x42424242 && (int)obj != 0x69696969) {
+            if (obj) free(obj);
+        }
     }
 }
 
@@ -1203,42 +1206,42 @@ void SetObjectArrayElement(JNIEnv* env, jobjectArray array, jsize index, jobject
 
 jbooleanArray NewBooleanArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewBooleanArray(env, size:%i)", length);
-    return (jbooleanArray*) malloc(length * sizeof(jboolean));
+    return (jbooleanArray) malloc(length * sizeof(jboolean));
 }
 
 jbyteArray NewByteArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewByteArray(env, size:%i)", length);
-    return (jbyteArray*) malloc(length * sizeof(jbyte));
+    return (jbyteArray) malloc(length * sizeof(jbyte));
 }
 
 jcharArray NewCharArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewCharArray(env, size:%i)", length);
-    return (jcharArray*) malloc(length * sizeof(jchar));
+    return (jcharArray) malloc(length * sizeof(jchar));
 }
 
 jshortArray NewShortArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewShortArray(env, size:%i)", length);
-    return (jshortArray*) malloc(length * sizeof(jshort));
+    return (jshortArray) malloc(length * sizeof(jshort));
 }
 
 jintArray NewIntArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewIntArray(env, size:%i)", length);
-    return (jintArray*) malloc(length * sizeof(jint));
+    return (jintArray) malloc(length * sizeof(jint));
 }
 
 jlongArray NewLongArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewLongArray(env, size:%i)", length);
-    return (jlongArray*) malloc(length * sizeof(jlong));
+    return (jlongArray) malloc(length * sizeof(jlong));
 }
 
 jfloatArray NewFloatArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewFloatArray(env, size:%i)", length);
-    return (jfloatArray*) malloc(length * sizeof(jfloat));
+    return (jfloatArray) malloc(length * sizeof(jfloat));
 }
 
 jdoubleArray NewDoubleArray(JNIEnv* env, jsize length) {
     fjni_logv_dbg("[JNI] NewDoubleArray(env, size:%i)", length);
-    return (jdoubleArray*) malloc(length * sizeof(jdouble));
+    return (jdoubleArray) malloc(length * sizeof(jdouble));
 }
 
 jboolean* GetBooleanArrayElements(JNIEnv* env, jbooleanArray array, jboolean* isCopy) {
@@ -1372,30 +1375,45 @@ void GetDoubleArrayRegion(JNIEnv* env, jdoubleArray array, jsize start, jsize le
     memcpy(buffer, (jdouble*)array + start, length);
 }
 
-// TODO: Implement Set<type>ArrayRegion routines
+void SetBooleanArrayRegion(JNIEnv* env, jbooleanArray array, jsize start, jsize len, const jboolean* buf) {
+    fjni_logv_dbg("[JNI] SetBooleanArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
+    SetPrimitiveArrayRegion(array, "jbooleanArray", start, len, buf, jboolean);
+}
 
-void SetBooleanArrayRegion(JNIEnv* env, jbooleanArray array, jsize start, jsize len, const jboolean* buf) { fjni_log_warn("[JNI] SetBooleanArrayRegion(): not implemented"); }
-void SetByteArrayRegion(JNIEnv* env, jbyteArray array, jsize start, jsize len, const jbyte* buf) { fjni_log_warn("[JNI] SetByteArrayRegion(): not implemented"); }
-void SetCharArrayRegion(JNIEnv* env, jcharArray array, jsize start, jsize len, const jchar* buf) { fjni_log_warn("[JNI] SetCharArrayRegion(): not implemented"); }
+void SetByteArrayRegion(JNIEnv* env, jbyteArray array, jsize start, jsize len, const jbyte* buf) {
+    fjni_logv_dbg("[JNI] SetByteArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
+    SetPrimitiveArrayRegion(array, "jbyteArray", start, len, buf, jbyte);
+}
+
+void SetCharArrayRegion(JNIEnv* env, jcharArray array, jsize start, jsize len, const jchar* buf) {
+    fjni_logv_dbg("[JNI] SetCharArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
+    SetPrimitiveArrayRegion(array, "jcharArray", start, len, buf, jchar);
+}
+
 void SetShortArrayRegion(JNIEnv* env, jshortArray array, jsize start, jsize len, const jshort* buf) {
     fjni_logv_dbg("[JNI] SetShortArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
-
-    if (!buf) {
-        fjni_logv_err("[JNI] SetShortArrayRegion(env, 0x%x, %i, %i, buffer): Buffer is NULL", (int) array, start, len);
-        return;
-    }
-
-    if (!array) {
-        fjni_logv_err("[JNI] SetShortArrayRegion(env, 0x%x, %i, %i, buffer): Array is NULL", (int) array, start, len);
-        return;
-    }
-
-    memcpy(array + start, buf, len);
+    SetPrimitiveArrayRegion(array, "jshortArray", start, len, buf, jshort);
 }
-void SetIntArrayRegion(JNIEnv* env, jintArray array, jsize start, jsize len, const jint* buf) { fjni_log_warn("[JNI] SetIntArrayRegion(): not implemented"); }
-void SetLongArrayRegion(JNIEnv* env, jlongArray array, jsize start, jsize len, const jlong* buf) { fjni_log_warn("[JNI] SetLongArrayRegion(): not implemented"); }
-void SetFloatArrayRegion(JNIEnv* env, jfloatArray array, jsize start, jsize len, const jfloat* buf) { fjni_log_warn("[JNI] SetFloatArrayRegion(): not implemented"); }
-void SetDoubleArrayRegion(JNIEnv* env, jdoubleArray array, jsize start, jsize len, const jdouble* buf) { fjni_log_warn("[JNI] SetDoubleArrayRegion(): not implemented"); }
+
+void SetIntArrayRegion(JNIEnv* env, jintArray array, jsize start, jsize len, const jint* buf) {
+    fjni_logv_dbg("[JNI] SetIntArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
+    SetPrimitiveArrayRegion(array, "jintArray", start, len, buf, jint);
+}
+
+void SetLongArrayRegion(JNIEnv* env, jlongArray array, jsize start, jsize len, const jlong* buf) {
+    fjni_logv_dbg("[JNI] SetLongArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
+    SetPrimitiveArrayRegion(array, "jlongArray", start, len, buf, jlong);
+}
+
+void SetFloatArrayRegion(JNIEnv* env, jfloatArray array, jsize start, jsize len, const jfloat* buf) {
+    fjni_logv_dbg("[JNI] SetFloatArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
+    SetPrimitiveArrayRegion(array, "jfloatArray", start, len, buf, jfloat);
+}
+
+void SetDoubleArrayRegion(JNIEnv* env, jdoubleArray array, jsize start, jsize len, const jdouble* buf) {
+    fjni_logv_dbg("[JNI] SetDoubleArrayRegion(env, 0x%x, %i, %i, buffer)", (int)array, start, len);
+    SetPrimitiveArrayRegion(array, "jdoubleArray", start, len, buf, jdouble);
+}
 
 // Due to the way we define and execute functions, Register/UnregisterNatives are redundant
 
@@ -1412,12 +1430,12 @@ jint UnregisterNatives(JNIEnv* env, jclass clazz) {
 // TODO: Implement MonitorEnter/MonitorExit with mutexes
 
 jint MonitorEnter(JNIEnv* env, jobject obj) {
-    fjni_logv_warn("[JNI] MonitorEnter(env, 0x%x): not implemented", (int)obj);
+    //fjni_logv_warn("[JNI] MonitorEnter(env, 0x%x): not implemented", (int)obj);
     return 0;
 }
 
 jint MonitorExit(JNIEnv* env, jobject obj) {
-    fjni_logv_warn("[JNI] MonitorExit(env, 0x%x): not implemented", (int)obj);
+    //fjni_logv_warn("[JNI] MonitorExit(env, 0x%x): not implemented", (int)obj);
     return 0;
 }
 

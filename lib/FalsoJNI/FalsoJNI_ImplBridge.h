@@ -198,6 +198,23 @@ typedef struct {
   return defaultval; \
 })
 
+#define SetPrimitiveArrayRegion(array, arrayTypeStr, start, length, buf, elementType) ({ \
+    if ((array) == NULL) { \
+        fjni_logv_err("SetPrimitiveArrayRegion(%s): array can not be NULL.", (arrayTypeStr)); \
+        return; \
+    } \
+    if ((start) < 0 || (length) < 0) { \
+        fjni_logv_err("SetPrimitiveArrayRegion(%s): out of bounds.", (arrayTypeStr)); \
+        return; \
+    } \
+    \
+    if ((length) != 0 && (buf) == NULL) { \
+        fjni_logv_err("SetPrimitiveArrayRegion(%s): buf is null.", (arrayTypeStr));\
+    } \
+    \
+    memcpy((array) + (start), (buf), (length) * sizeof(elementType));\
+})
+
 const char* fieldStringGet(jfieldID id);
 const int* fieldIntGet(jfieldID id);
 const jboolean * fieldBoolGet(jfieldID id);

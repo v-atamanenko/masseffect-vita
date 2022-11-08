@@ -1,7 +1,7 @@
 #ifndef SOLOADER_EAAUDIOCORE_H
 #define SOLOADER_EAAUDIOCORE_H
 
-#include "android/jni.h"
+#include <FalsoJNI/FalsoJNI.h>
 
 struct _AudioTrack {
     int gap[256];

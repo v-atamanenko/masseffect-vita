@@ -47,7 +47,7 @@ void main(
 ) {
     float temporary;
     float4 temporary2;
-    temporary2 = mul(float4((vs_Position * g_PositionScaleBias.x + g_PositionScaleBias.yzw), 1.00), g_WorldViewProjection * GetSkinNMat4(vs_SkinIndex,vs_SkinWeight,4));
+    temporary2 = mul(float4((vs_Position * g_PositionScaleBias.x + g_PositionScaleBias.yzw), 1.00), mul(GetSkinNMat4(vs_SkinIndex,vs_SkinWeight,4), g_WorldViewProjection));
     temporary = clamp((g_FogEnd - temporary2.w) * g_FogRangeInv, 0.0, 1.0);
     FogFactorColor = ((1.0 - temporary) * g_FogColor);
     FogFactor = temporary;

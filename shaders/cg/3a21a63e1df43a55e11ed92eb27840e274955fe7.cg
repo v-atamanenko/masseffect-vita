@@ -9,11 +9,11 @@ void main(
     float3 vs_Position,
     float2 vs_TexCoord1,
     float4 vs_Colour,
-    float out TexCoord1 : TEXCOORD1,
+    float2 out TexCoord1 : TEXCOORD1,
     float4 out Colour : COLOR,
     float4 out gl_Position : POSITION
 ) {
     Colour = (vs_Colour * g_UniformColour);
-    TexCoord1 = ((vs_TexCoord1 * g_TextureScale1) + g_TextureBias1);
+    TexCoord1 = (float2(vs_TexCoord1.x * g_TextureScale1, vs_TexCoord1.y * g_TextureScale1) + g_TextureBias1);
     gl_Position = mul(float4(vs_Position, 1.0), g_WorldViewProjection);
 }

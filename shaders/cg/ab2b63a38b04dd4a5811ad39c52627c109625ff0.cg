@@ -58,6 +58,6 @@ void main(
     temporary3 = mul(float4((vs_Position * g_PositionScaleBias.x + g_PositionScaleBias.yzw), 1.00), temporary);
     temporary2 = (g_CameraPosition - (mul(temporary3, g_World)).xyz);
     gl_Position = mul(temporary3, g_WorldViewProjection);
-    FresnelCol = float4(g_FresnelColor.xyz * exp2(2.0 * g_FresnelPower * log2(1.01 - min(1.0, dot(normalize(temporary2), mul(vs_Normals, float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz) * float3x3(temporary[0].xyz, temporary[1].xyz, temporary[2].xyz)))))), 0);
+    FresnelCol = float4(g_FresnelColor.xyz * exp2(2.0 * g_FresnelPower * log2(1.01 - min(1.0, dot(normalize(temporary2), mul(vs_Normals, mul(float3x3(temporary[0].xyz, temporary[1].xyz, temporary[2].xyz), float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz))))))), 0);
     CameraDir = temporary2;
 }

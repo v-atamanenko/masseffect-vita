@@ -1,7 +1,7 @@
 // profile sce_vp_psp2
 
 uniform float4 g_BonePalette[192];
-uniform float4 g_WorldViewProjection;
+uniform float4x4 g_WorldViewProjection;
 uniform float4 g_PositionScaleBias;
 uniform float g_TextureScale0;
 uniform float2 g_TextureBias0;
@@ -53,7 +53,7 @@ void main(
     TexCoord0 = ((vs_TexCoord0 * g_TextureScale0) + g_TextureBias0);
     temporary3 = mul(float4((vs_Position * g_PositionScaleBias.x + g_PositionScaleBias.yzw), 1.00), temporary);
     temporary2 = (g_CameraPosition - (mul(temporary3, g_World)).xyz);
-    gl_Position = (g_WorldViewProjection * temporary3);
-    FresnelValue = 1.5 * (0.05 + (0.5 + 0.05 * sin(g_Time * 44.314) + 0.3 * cos(g_Time * 2.989283)) * exp2(smoothstep(0.0, 0.3, g_Time) * 15.0 * log2(1.01 - min(1.0, abs(dot(normalize(temporary2), mul(vs_Normals, float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz) * float3x3(temporary[0].xyz, temporary[1].xyz, temporary[2].xyz))))))));
+    gl_Position = mul(temporary3, g_WorldViewProjection);
+    FresnelValue = 1.5 * (0.05 + (0.5 + 0.05 * sin(g_Time * 44.314) + 0.3 * cos(g_Time * 2.989283)) * exp2(smoothstep(0.0, 0.3, g_Time) * 15.0 * log2(1.01 - min(1.0, abs(dot(normalize(temporary2), mul(vs_Normals, mul(float3x3(temporary[0].xyz, temporary[1].xyz, temporary[2].xyz), float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz)))))))));
     CameraDir = temporary2;
 }

@@ -66,7 +66,7 @@ void main(
     temporary4 = (g_CameraPosition - (mul(temporary2, g_World)).xyz);
     temporary = clamp((g_FogEnd - temporary5.w) * g_FogRangeInv, 0.0, 1.0);
     gl_Position = temporary5;
-    FresnelCol = float4(g_FresnelColor.xyz * exp2(2.0 * g_FresnelPower * log2(1.01 - min(1.0, dot(normalize(temporary4), mul(vs_Normals, float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz) * float3x3(temporary3[0].xyz, temporary3[1].xyz, temporary3[2].xyz)))))), 0);
+    FresnelCol = float4(g_FresnelColor.xyz * exp2(2.0 * g_FresnelPower * log2(1.01 - min(1.0, dot(normalize(temporary4), mul(vs_Normals, mul(float3x3(temporary3[0].xyz, temporary3[1].xyz, temporary3[2].xyz), float3x3(g_World[0].xyz, g_World[1].xyz, g_World[2].xyz))))))), 0);
     CameraDir = temporary4;
     FogFactorColor = ((1.0 - temporary) * g_FogColor);
     FogFactor = temporary;

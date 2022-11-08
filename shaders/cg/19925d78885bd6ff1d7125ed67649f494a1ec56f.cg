@@ -1,0 +1,15 @@
+// profile sce_fp_psp2
+
+uniform float g_LODBias;
+uniform sampler2D g_Texture0;
+uniform sampler2D g_Texture1;
+
+float4 main(
+    float2 TexCoord0 : TEXCOORD0,
+    float2 TexCoord1 : TEXCOORD1,
+    float4 UniformCol : COLOR,
+    float FogFactor : TEXCOORD5,
+    float4 FogFactorColor : TEXCOORD6
+) {
+    return ((((tex2Dbias(g_Texture0, float4(TexCoord0, 1.0, g_LODBias)) * tex2D( g_Texture1, TexCoord1 )) * UniformCol) * FogFactor) + FogFactorColor);
+}

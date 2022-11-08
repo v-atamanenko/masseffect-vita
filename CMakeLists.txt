@@ -11,7 +11,7 @@ endif()
 if(DEFINED ENV{PSVITAIP})
   set(PSVITAIP "$ENV{PSVITAIP}")
 else()
-  set(PSVITAIP "192.168.1.19")
+  set(PSVITAIP "192.168.1.21")
   message(WARNING "PSVITAIP environment variable is not set, using default IP ${PSVITAIP}")
 endif()
 
@@ -52,8 +52,8 @@ add_definitions(-DSO_PATH="${SO_PATH}")
 
 add_definitions(-D_GNU_SOURCE) # makes sincos, sincosf, etc. visible
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wl,-q -O2 -mfloat-abi=softfp")
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++11")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wl,-q -O0 -mfloat-abi=softfp")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++20")
 
 add_executable(so_loader
         loader/main.c
@@ -80,6 +80,29 @@ add_executable(so_loader
         lib/FalsoJNI/FalsoJNI.c
         lib/FalsoJNI/FalsoJNI_Logger.c
         lib/FalsoJNI/FalsoJNI_ImplBridge.c
+        #lib/bionic_pthread/pthread_atfork.cpp
+        #lib/bionic_pthread/pthread_attr.cpp
+        #lib/bionic_pthread/pthread_barrier.cpp
+        #lib/bionic_pthread/pthread_cond.cpp
+        ##lib/bionic_pthread/pthread_create.cpp
+        #lib/bionic_pthread/pthread_detach.cpp
+        #lib/bionic_pthread/pthread_equal.cpp
+        #lib/bionic_pthread/pthread_exit.cpp
+        #lib/bionic_pthread/pthread_getcpuclockid.cpp
+        #lib/bionic_pthread/pthread_getschedparam.cpp
+        #lib/bionic_pthread/pthread_gettid_np.cpp
+        #lib/bionic_pthread/pthread_internal.cpp
+        #lib/bionic_pthread/pthread_join.cpp
+        #lib/bionic_pthread/pthread_key.cpp
+        #lib/bionic_pthread/pthread_kill.cpp
+        #lib/bionic_pthread/pthread_mutex.cpp
+        #lib/bionic_pthread/pthread_once.cpp
+        #lib/bionic_pthread/pthread_rwlock.cpp
+        #lib/bionic_pthread/pthread_self.cpp
+        #lib/bionic_pthread/pthread_setname_np.cpp
+        #lib/bionic_pthread/pthread_setschedparam.cpp
+        #lib/bionic_pthread/pthread_sigqueue.cpp
+        #lib/bionic_pthread/pthread_spinlock.cpp
 )
 
 set(EXCEPTION_SAFETY 1)
@@ -139,7 +162,7 @@ vita_create_vpk(${VITA_VPKNAME}.vpk ${VITA_TITLEID} eboot.bin
         ${CMAKE_SOURCE_DIR}/livearea/startup.png sce_sys/livearea/contents/startup.png
         ${CMAKE_SOURCE_DIR}/livearea/bg0.png sce_sys/livearea/contents/bg0.png
         ${CMAKE_SOURCE_DIR}/livearea/template.xml sce_sys/livearea/contents/template.xml
-        ${CMAKE_SOURCE_DIR}/shaders shaders
+        ${CMAKE_SOURCE_DIR}/shaders/gxp shaders
         ${CMAKE_SOURCE_DIR}/data data
 )
 

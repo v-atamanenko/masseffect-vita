@@ -1,0 +1,11 @@
+// profile sce_fp_psp2
+
+uniform sampler2D g_Texture1;
+
+float4 main(
+    float4 Colour : COLOR,
+    float2 TexCoord1 : TEXCOORD1
+)
+{
+    return (Colour * tex2D( g_Texture1, TexCoord1 ));
+}

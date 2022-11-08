@@ -1,0 +1,7 @@
+// profile sce_fp_psp2
+
+uniform sampler2D s_texture;              
+float4 main(float2 v_texCoord : TEXCOORD0)                                         
+{                                                   
+  return tex2D( s_texture, v_texCoord );
+}

@@ -1,0 +1,10 @@
+// profile sce_vp_psp2
+
+uniform float4x4 g_WorldViewProjection;
+
+void main(
+    float3 vs_Position,
+    float4 out gl_Position : POSITION
+) {
+    gl_Position = mul(float4(vs_Position, 1.0), g_WorldViewProjection);
+}

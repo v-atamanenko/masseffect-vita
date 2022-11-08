@@ -1,0 +1,7 @@
+// profile sce_fp_psp2
+
+uniform float4 g_UniformColour;
+
+float4 main() {
+    return g_UniformColour;
+}

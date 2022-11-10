@@ -49,7 +49,7 @@ void main(
     float3 out CameraDir : TEXCOORD7,
     float4 out UniformCol : COLOR,
     float4 out FresnelCol : TEXCOORD4,
-    float out FogFactor : TEXCOORD5,
+    float out FogFactor : FOG,
     float4 out FogFactorColor : TEXCOORD6,
     float4 out gl_Position : POSITION
 ) {

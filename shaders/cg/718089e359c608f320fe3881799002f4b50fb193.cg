@@ -4,7 +4,7 @@ uniform float g_Time;
 
 float4 main(
     float4 gl_FragCoord : WPOS,
-    float FresnelValue : TEXCOORD6
+    float FresnelValue : TEXCOORD5
 ) {
     return float4(0.8 * frac(gl_FragCoord.y * (0.25 + 0.05 * sin(g_Time))),
                   0.9 * frac(gl_FragCoord.y * (0.25 + 0.05 * sin(g_Time * 1.6464839 + 0.2))),

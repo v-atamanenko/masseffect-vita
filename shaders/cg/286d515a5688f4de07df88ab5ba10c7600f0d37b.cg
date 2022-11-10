@@ -14,7 +14,7 @@ void main(
     float2 vs_TexCoord0,
     float2 out TexCoord0 : TEXCOORD0,
     float4 out UniformCol : COLOR,
-    float out FogFactor : TEXCOORD5,
+    float out FogFactor : FOG,
     float4 out FogFactorColor : TEXCOORD6,
     float4 out gl_Position : POSITION
 ) {

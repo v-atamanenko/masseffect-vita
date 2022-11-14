@@ -107,13 +107,13 @@ NameToMethodID nameToMethodId[] = {
     { 999, "finish", METHOD_TYPE_VOID }
 };
 
-extern void (*Java_com_ea_EAIO_EAIO_Startup)(JNIEnv*, void*, jobject);
+//extern void (*Java_com_ea_EAIO_EAIO_Startup)(JNIEnv*, void*, jobject);
 // com/ea/EAIO/EAIO/Startup
 void ea_EAIO_Startup(jmethodID id, va_list args) {
     void* assetManager = va_arg(args, void*);
     debugPrintf("JNI: Method Call: com/ea/EAIO/EAIO/Startup(AssetManager: 0x%x) / id: %i\n", (int)assetManager, id);
 
-    Java_com_ea_EAIO_EAIO_Startup(&jni, NULL, assetManager);
+    //Java_com_ea_EAIO_EAIO_Startup(&jni, NULL, assetManager);
 }
 
 // com/ea/blast/MainActivity/GetInstance

@@ -7,11 +7,11 @@
 #include <string.h>
 #include <pthread.h>
 #include <sys/unistd.h>
+#include <FalsoJNI/FalsoJNI_ImplBridge.h>
 #include "utils/utils.h"
 
 #include "java.io.InputStream.h"
-#include "android/jni.h"
-#include "jni_fake.h"
+
 
 FILE* f = NULL;
 int fd = -1;
@@ -26,8 +26,8 @@ const char* assetsPathPrefix = DATA_PATH_INT;
 
 // public int read(byte[] b, int off, int len)
 // https://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html#read()
-jint InputStream_read(int id, va_list args) {
-    debugPrintf("JNI: Method Call: InputStream_read() / id: %i\n", id);
+jint InputStream_read(jmethodID id, va_list args) {
+    //debugPrintf("JNI: Method Call: InputStream_read() / id: %i\n", id);
     // Imporant note: there are also versions of read() with two and one arg;
     // here we assume that only the full version with 3 args is used, which is
     // dangerous.
@@ -63,7 +63,7 @@ jint InputStream_read(int id, va_list args) {
 
 // public void close ()
 // https://developer.android.com/reference/android/content/res/AssetManager#close()
-void InputStream_close(int id, va_list args) {
+void InputStream_close(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: InputStream_close() / id: %i\n", id);
     //pthread_mutex_destroy(&mut);
     if (f) {
@@ -78,7 +78,7 @@ void InputStream_close(int id, va_list args) {
 
 // public long skip(long n)
 // https://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html#skip(long)
-jlong InputStream_skip(int id, va_list args) {
+jlong InputStream_skip(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: InputStream_skip() / id: %i\n", id);
     int64_t off = va_arg(args, int64_t);
 
@@ -98,23 +98,28 @@ jlong InputStream_skip(int id, va_list args) {
 
 // public InputStream open (String fileName)
 // https://developer.android.com/reference/android/content/res/AssetManager#open(java.lang.String)
-jobject InputStream_open(int id, va_list args) {
+jobject InputStream_open(jmethodID id, va_list args) {
     // This method is supposed to initialize the asset to be opened, but
     // since we don't need that, let's just return a dummy string that can
     // be freed later.
-    debugPrintf("JNI: Method Call: InputStream_open(%) / id: %i\n", id);
+    debugPrintf("JNI: Method Call: InputStream_open() / id: %i\n", id);
     //pthread_mutex_init(&mut, NULL);
     return strdup("nop");
 }
 
 // public AssetFileDescriptor openFd (String fileName)
 // https://developer.android.com/reference/android/content/res/AssetManager#openFd(java.lang.String)
-jint InputStream_openFd(int id, va_list args) {
+jint InputStream_openFd(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: InputStream_openFd() / id: %i\n", id);
     const char* fileName = va_arg(args, const char*);
 
     char temp[1024];
-    sprintf(temp, "%s%s", assetsPathPrefix, fileName);
+    if (strstr(fileName, "splash.png")) {
+        sprintf(temp, "app0:/data/splash.png");
+    } else {
+        sprintf(temp, "%s%s", assetsPathPrefix, fileName);
+    }
+
 
     debugPrintf("[java.io.InputStream] InputStream_openFd(\"%s\")\n", temp);
     fd = open(temp, O_RDONLY);
@@ -125,7 +130,7 @@ jint InputStream_openFd(int id, va_list args) {
 
 // public String[] list (String path)
 // https://developer.android.com/reference/android/content/res/AssetManager#list(java.lang.String)
-jobject InputStream_list(int id, va_list args) {
+jobject InputStream_list(jmethodID id, va_list args) {
     const char* path_tmp = va_arg(args, const char*);
 
     debugPrintf("JNI: Method Call: InputStream_list() / id: %i / path: \"%s\" (0x%x)\n", id, path_tmp, path_tmp);
@@ -198,22 +203,17 @@ jobject InputStream_list(int id, va_list args) {
         free(list[u]);
     }
 
-    debugPrintf("OL1\n");
     saveDynamicallyAllocatedArrayPointer(list_ret, (jsize)listSize);
-    debugPrintf("OL2\n");
     free(list);
-    debugPrintf("OL3\n");
     listSize = 0;
-    debugPrintf("OL4\n");
 
     //pthread_mutex_unlock(&mut);
-    debugPrintf("OL5\n");
     return (jobject)list_ret;
 }
 
 // public long getLength ()
 // https://developer.android.com/reference/android/content/res/AssetFileDescriptor#getLength()
-jlong InputStream_getLength(int id, va_list args) {
+jlong InputStream_getLength(jmethodID id, va_list args) {
     debugPrintf("JNI: Method Call: InputStream_getLength() / id: %i / fd: %i\n", id, fd);
 
     if (fd == -1) {

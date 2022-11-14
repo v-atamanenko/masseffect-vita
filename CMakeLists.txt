@@ -11,7 +11,7 @@ endif()
 if(DEFINED ENV{PSVITAIP})
   set(PSVITAIP "$ENV{PSVITAIP}")
 else()
-  set(PSVITAIP "192.168.1.21")
+  set(PSVITAIP "192.168.1.98")
   message(WARNING "PSVITAIP environment variable is not set, using default IP ${PSVITAIP}")
 endif()
 
@@ -52,7 +52,7 @@ add_definitions(-DSO_PATH="${SO_PATH}")
 
 add_definitions(-D_GNU_SOURCE) # makes sincos, sincosf, etc. visible
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wl,-q -O0 -mfloat-abi=softfp")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wl,-q -O3 -ffast-math -ftree-vectorize -mfloat-abi=softfp")
 set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -std=gnu++20")
 
 add_executable(so_loader
@@ -67,6 +67,7 @@ add_executable(so_loader
         loader/patch.c
         loader/utils/utils.c
         loader/utils/logger.c
+        loader/utils/settings.c
         loader/reimpl/controls.c
         loader/reimpl/ctype_patch.c
         loader/reimpl/env.c
@@ -80,29 +81,6 @@ add_executable(so_loader
         lib/FalsoJNI/FalsoJNI.c
         lib/FalsoJNI/FalsoJNI_Logger.c
         lib/FalsoJNI/FalsoJNI_ImplBridge.c
-        #lib/bionic_pthread/pthread_atfork.cpp
-        #lib/bionic_pthread/pthread_attr.cpp
-        #lib/bionic_pthread/pthread_barrier.cpp
-        #lib/bionic_pthread/pthread_cond.cpp
-        ##lib/bionic_pthread/pthread_create.cpp
-        #lib/bionic_pthread/pthread_detach.cpp
-        #lib/bionic_pthread/pthread_equal.cpp
-        #lib/bionic_pthread/pthread_exit.cpp
-        #lib/bionic_pthread/pthread_getcpuclockid.cpp
-        #lib/bionic_pthread/pthread_getschedparam.cpp
-        #lib/bionic_pthread/pthread_gettid_np.cpp
-        #lib/bionic_pthread/pthread_internal.cpp
-        #lib/bionic_pthread/pthread_join.cpp
-        #lib/bionic_pthread/pthread_key.cpp
-        #lib/bionic_pthread/pthread_kill.cpp
-        #lib/bionic_pthread/pthread_mutex.cpp
-        #lib/bionic_pthread/pthread_once.cpp
-        #lib/bionic_pthread/pthread_rwlock.cpp
-        #lib/bionic_pthread/pthread_self.cpp
-        #lib/bionic_pthread/pthread_setname_np.cpp
-        #lib/bionic_pthread/pthread_setschedparam.cpp
-        #lib/bionic_pthread/pthread_sigqueue.cpp
-        #lib/bionic_pthread/pthread_spinlock.cpp
 )
 
 set(EXCEPTION_SAFETY 1)
@@ -153,17 +131,46 @@ target_link_libraries(so_loader
         SceVshBridge_stub
 )
 
+add_executable(companion
+        companion/main.cpp
+        )
+
+target_link_libraries(companion
+        imgui
+        vitaGL
+        vitashark
+        SceShaccCgExt
+        m
+        mathneon
+        taihen_stub
+        SceAppMgr_stub
+        SceAudio_stub
+        SceCtrl_stub
+        SceCommonDialog_stub
+        SceDisplay_stub
+        SceKernelDmacMgr_stub
+        SceGxm_stub
+        SceShaccCg_stub
+        SceSysmodule_stub
+        SceTouch_stub
+        SceVshBridge_stub
+        )
+
+vita_create_self(companion.bin companion UNSAFE)
+
 vita_create_self(eboot.bin so_loader UNSAFE)
 vita_create_vpk(${VITA_VPKNAME}.vpk ${VITA_TITLEID} eboot.bin
         VERSION ${VITA_VERSION}
         NAME ${VITA_APP_NAME}
         FILE ${CMAKE_SOURCE_DIR}/livearea/icon0.png sce_sys/icon0.png
         ${CMAKE_SOURCE_DIR}/livearea/pic0.png sce_sys/pic0.png
-        ${CMAKE_SOURCE_DIR}/livearea/startup.png sce_sys/livearea/contents/startup.png
+        ${CMAKE_SOURCE_DIR}/livearea/cerberus.png sce_sys/livearea/contents/cerberus.png
         ${CMAKE_SOURCE_DIR}/livearea/bg0.png sce_sys/livearea/contents/bg0.png
         ${CMAKE_SOURCE_DIR}/livearea/template.xml sce_sys/livearea/contents/template.xml
+        ${CMAKE_SOURCE_DIR}/livearea/conf.png sce_sys/livearea/contents/conf.png
         ${CMAKE_SOURCE_DIR}/shaders/gxp shaders
         ${CMAKE_SOURCE_DIR}/data data
+        ${CMAKE_BINARY_DIR}/companion.bin companion.bin
 )
 
 add_custom_command(TARGET so_loader
@@ -174,6 +181,7 @@ add_custom_command(TARGET so_loader
 )
 
 add_custom_target(send
+        COMMAND echo destroy | nc ${PSVITAIP} 1338
         COMMAND echo destroy | nc ${PSVITAIP} 1338
         COMMAND curl -T eboot.bin ftp://${PSVITAIP}:1337/ux0:/app/${VITA_TITLEID}/
         COMMAND echo launch ${VITA_TITLEID} | nc ${PSVITAIP} 1338

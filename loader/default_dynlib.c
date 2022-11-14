@@ -87,14 +87,12 @@ extern void *__stack_chk_fail;
 extern void *__stack_chk_guard;
 extern void *__dso_handle;
 
-static FILE __sF_fake[0x100][3];
-
 extern const char *BIONIC_ctype_;
 extern const short *BIONIC_tolower_tab_;
 extern const short *BIONIC_toupper_tab_;
 
-int timezone = 1;
-char *__tzname[2];
+int timezone = 0;
+char *__tzname[2] = { (char *) "GMT", (char *) "GMT" };
 
 #define __ATOMIC_INLINE__ static __inline__ __attribute__((always_inline))
 
@@ -217,7 +215,7 @@ int glGetRenderbufferParameteriv_tempwrap(GLenum target,
 int glIsShader_tempwrap() { fprintf(stderr, "ret0d call!!! glIsShader_tempwrap\n"); return 0; }
 int glGetShaderPrecisionFormat_tempwrap() { fprintf(stderr, "ret0d call!!! glGetShaderPrecisionFormat_tempwrap\n"); return 0; }
 
-static FILE __sF_fake[0x100][3];
+static FILE __sF_fake[3];
 
 // NOLINT(cppcoreguidelines-interfaces-global-init)
 so_default_dynlib default_dynlib[] = {
@@ -264,7 +262,7 @@ so_default_dynlib default_dynlib[] = {
         { "exit", (uintptr_t)&exit },
         { "exp", (uintptr_t)&exp },
         { "expf", (uintptr_t)&expf },
-        { "fclose", (uintptr_t)&fclose },
+        { "fclose", (uintptr_t)&fclose_soloader },
         { "fcntl", (uintptr_t)&fcntl_soloader },
         { "fflush", (uintptr_t)&fflush },
         { "floor", (uintptr_t)&floor },
@@ -493,8 +491,8 @@ so_default_dynlib default_dynlib[] = {
         { "readdir", (uintptr_t)&readdir_soloader },
         { "readdir_r", (uintptr_t)&readdir_r_soloader },
         { "realloc", (uintptr_t)&realloc },
-        { "recv", (uintptr_t)&recv },
-        { "recvfrom", (uintptr_t)&recvfrom },
+        { "recv", (uintptr_t)&ret0 },
+        { "recvfrom", (uintptr_t)&ret0 },
         { "remove", (uintptr_t)&remove },
         { "rename", (uintptr_t)&rename },
         { "rmdir", (uintptr_t)&rmdir },
@@ -508,8 +506,8 @@ so_default_dynlib default_dynlib[] = {
         { "sem_timedwait", (uintptr_t)&sem_timedwait_soloader },
         { "sem_trywait", (uintptr_t)&sem_trywait_soloader },
         { "sem_wait", (uintptr_t)&sem_wait_soloader },
-        { "send", (uintptr_t)&send },
-        { "sendto", (uintptr_t)&sendto },
+        { "send", (uintptr_t)&ret0 },
+        { "sendto", (uintptr_t)&ret0 },
         { "setjmp", (uintptr_t)&setjmp },
         { "setlocale", (uintptr_t)&setlocale_tempwrap },
         { "setsockopt", (uintptr_t)&setsockopt },
@@ -518,7 +516,7 @@ so_default_dynlib default_dynlib[] = {
         { "sin", (uintptr_t)&sin },
         { "sinf", (uintptr_t)&sinf },
         { "snprintf", (uintptr_t)&snprintf },
-        { "socket", (uintptr_t)&socket },
+        { "socket", (uintptr_t)&retminus1 },
         { "sprintf", (uintptr_t)&sprintf },
         { "sqrt", (uintptr_t)&sqrt },
         { "sqrtf", (uintptr_t)&sqrtf },
@@ -553,6 +551,8 @@ so_default_dynlib default_dynlib[] = {
 };
 
 void resolve_imports(so_module* mod) {
-    printf("sz: %i\n", sizeof(default_dynlib) / sizeof(default_dynlib[0]));
+    __sF_fake[0] = *stdin;
+    __sF_fake[1] = *stdout;
+    __sF_fake[2] = *stderr;
     so_resolve(mod, default_dynlib, sizeof(default_dynlib), 0);
 }

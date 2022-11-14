@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <sys/dirent.h>
 #include <sys/syslimits.h>
+#include <sys/fcntl.h>
 
 #ifndef PATH_MAX
 #define PATH_MAX 1024
@@ -71,8 +72,6 @@ typedef struct __attribute__((__packed__)) dirent64_bionic {
     char d_name[256]; // 256 bytes // offset 0x13
 } dirent64_bionic;
 
-// vitasdk lacks proper definition of open() although it has its implementation
-int open(const char *pathname, int flags);
 
 int read_soloader(int __fd, void *__buf, size_t __nbyte);
 
@@ -101,6 +100,8 @@ off_t ftello_soloader(FILE * a);
 int fcntl_soloader(int fd, int cmd, ... /* arg */ );
 
 int fsync_soloader(int fd);
+
+int fclose_soloader(FILE* f);
 
 off_t lseek_soloader(int fildes, off_t offset, int whence);
 

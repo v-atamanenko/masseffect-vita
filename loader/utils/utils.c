@@ -11,6 +11,11 @@
  */
 
 #include "utils.h"
+#include "dialog.h"
+#include "default_dynlib.h"
+#include "patch.h"
+#include "glutil.h"
+#include "main.h"
 
 #include <psp2/io/stat.h>
 
@@ -22,6 +27,13 @@
 #include <pthread.h>
 #include <sys/dirent.h>
 #include <dirent.h>
+#include <psp2/apputil.h>
+#include <psp2/power.h>
+#include <so_util.h>
+#include <FalsoJNI/FalsoJNI.h>
+#include <sys/stat.h>
+#include <psp2/kernel/clib.h>
+#include <psp2/appmgr.h>
 
 #pragma ide diagnostic ignored "bugprone-reserved-identifier"
 
@@ -173,4 +185,65 @@ inline int8_t is_dir(char* p) {
         return 1;
     }
     return 0;
+}
+
+extern volatile int silentLoad;
+
+int soloader_init_all() {
+    // Check if we want to start the companion app
+    sceAppUtilInit(&(SceAppUtilInitParam){}, &(SceAppUtilBootParam){});
+    SceAppUtilAppEventParam eventParam;
+    sceClibMemset(&eventParam, 0, sizeof(SceAppUtilAppEventParam));
+    sceAppUtilReceiveAppEvent(&eventParam);
+    if (eventParam.type == 0x05) {
+        char buffer[2048];
+        sceAppUtilAppEventParseLiveArea(&eventParam, buffer);
+        fprintf(stderr, "BUFFER %s\n", buffer);
+        if (strstr(buffer, "-config"))
+            sceAppMgrLoadExec("app0:/companion.bin", NULL, NULL);
+        if (strstr(buffer, "-silent"))
+            silentLoad = 1;
+    }
+
+    scePowerSetArmClockFrequency(444);
+    scePowerSetBusClockFrequency(222);
+    scePowerSetGpuClockFrequency(222);
+    scePowerSetGpuXbarClockFrequency(166);
+
+    if (check_kubridge() < 0)
+        fatal_error("Error kubridge.skprx is not installed.");
+    debugPrintf("check_kubridge() passed.\n");
+
+    if (so_file_load(&so_mod, SO_PATH, LOAD_ADDRESS) < 0)
+        fatal_error("Error could not load %s.", SO_PATH);
+    debugPrintf("so_file_load(%s) passed.\n", SO_PATH);
+
+    so_relocate(&so_mod);
+    debugPrintf("so_relocate() passed.\n");
+
+    resolve_imports(&so_mod);
+    debugPrintf("so_resolve() passed.\n");
+
+    so_patch();
+    debugPrintf("so_patch() passed.\n");
+
+    so_flush_caches(&so_mod);
+    debugPrintf("so_flush_caches() passed.\n");
+
+    so_initialize(&so_mod);
+    debugPrintf("so_initialize() passed.\n");
+
+    gl_preload();
+    debugPrintf("gl_preload() passed.\n");
+
+    jni_init();
+    debugPrintf("jni_init() passed.\n");
+
+    if (!is_dir("ux0:data/masseffect/assets/var")) {
+        mkdir("ux0:data/masseffect/assets/var", 0700);
+    }
+
+    if (!is_dir("ux0:data/masseffect/assets/var1")) {
+        mkdir("ux0:data/masseffect/assets/var1", 0700);
+    }
 }

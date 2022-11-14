@@ -58,8 +58,6 @@ __attribute__((unused)) inline int string_starts_with(const char *pre,
 
 long long current_timestamp();
 
-void assert(int i);
-
 char *strremove(char *str, const char *sub);
 
 char* strreplace(char *target, const char *needle, const char *replacement);
@@ -67,5 +65,7 @@ char* strreplace(char *target, const char *needle, const char *replacement);
 void check_init_mutex(pthread_mutex_t* mut);
 
 int8_t is_dir(char* p);
+
+int soloader_init_all();
 
 #endif // SOLOADER_UTILS_H

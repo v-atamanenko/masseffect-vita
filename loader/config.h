@@ -14,15 +14,12 @@
 
 /*
  * Following config definitions are set from CMake:
- * DEBUG, DEBUG_GL, GRAPHICS_API, DATA_PATH, DATA_PATH_INT, SO_PATH
+ * DEBUG, DEBUG_GL, DEBUG_SOLOADER, DATA_PATH, DATA_PATH_INT, SO_PATH
  */
-
-#define GRAPHICS_API_VITAGL 0
-#define GRAPHICS_API_PVR 1
 
 #define LOAD_ADDRESS 0xA0000000
 
-#define MEMORY_NEWLIB_MB 225
+#define MEMORY_NEWLIB_MB 220
 
 #define GLSL_PATH DATA_PATH
 #define GXP_PATH "app0:shaders"

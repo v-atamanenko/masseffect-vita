@@ -1,5 +1,5 @@
 /*
- * dialog.h
+ * utils/dialog.h
  *
  * Common dialog for error messages and cheats input.
  *

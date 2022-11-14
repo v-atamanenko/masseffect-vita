@@ -1,5 +1,5 @@
 /*
- * settings.h
+ * utils/settings.h
  *
  * Loader settings that can be set via the companion app.
  *

@@ -1,3 +1,14 @@
+/*
+ * FalsoJNI_ImplSample.h
+ *
+ * Fake Java Native Interface, providing JavaVM and JNIEnv objects.
+ *
+ * Copyright (C) 2022 Volodymyr Atamanenko
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ */
+
 #ifndef FALSOJNI_IMPL_SAMPLE
 #define FALSOJNI_IMPL_SAMPLE
 
@@ -33,31 +44,7 @@ FieldsLong fieldsLong[] = {};
 FieldsShort fieldsShort[] = {};
 FieldsString fieldsString[] = {};
 
-size_t nameToMethodId_size() { return sizeof nameToMethodId; }
-
-size_t methodsBoolean_size() { return sizeof methodsBoolean; }
-size_t methodsByte_size() { return sizeof methodsByte; }
-size_t methodsChar_size() { return sizeof methodsChar; }
-size_t methodsDouble_size() { return sizeof methodsDouble; }
-size_t methodsFloat_size() { return sizeof methodsFloat; }
-size_t methodsInt_size() { return sizeof methodsInt; }
-size_t methodsLong_size() { return sizeof methodsLong; }
-size_t methodsObject_size() { return sizeof methodsObject; }
-size_t methodsShort_size() { return sizeof methodsShort; }
-size_t methodsVoid_size() { return sizeof methodsVoid; }
-
-size_t nameToFieldId_size() { return sizeof nameToFieldId; }
-
-size_t fieldsBoolean_size() { return sizeof fieldsBoolean; }
-size_t fieldsByte_size() { return sizeof fieldsByte; }
-size_t fieldsChar_size() { return sizeof fieldsChar; }
-size_t fieldsDouble_size() { return sizeof fieldsDouble; }
-size_t fieldsFloat_size() { return sizeof fieldsFloat; }
-size_t fieldsInt_size() { return sizeof fieldsInt; }
-size_t fieldsIntArray_size() { return sizeof fieldsIntArray; }
-size_t fieldsLong_size() { return sizeof fieldsLong; }
-size_t fieldsShort_size() { return sizeof fieldsShort; }
-size_t fieldsString_size() { return sizeof fieldsString; }
+__FALSOJNI_IMPL_CONTAINER_SIZES
 
 #ifdef __cplusplus
 };

@@ -25,8 +25,8 @@
 #include "utils/settings.h"
 
 int * waitForOrientation; // Flag that prevents application from booting, handled in main.c.
-extern volatile int savesBroke; // Flag that shows that the known deserialization bug happened.
-extern int wantQuit; // Flag to tell the main loop to quit.
+extern volatile int deserializationBugCaught; // Flag that shows that the known deserialization bug happened.
+extern volatile int wantQuit; // Flag to tell the main loop to quit.
 
 void sync_synchronize() {
     __sync_synchronize();
@@ -49,13 +49,11 @@ void so_patch(void) {
 
     // Flag that prevents application from booting, handled in main.c.
     // 1.39 waitForOrientation = (uintptr_t)so_mod.text_base + 0x00a931a8;
-    // 1.58
-    waitForOrientation = (uintptr_t)so_mod.text_base + 0x00aabd90;
+    waitForOrientation = (uintptr_t)so_mod.text_base + 0x00aabd90; // 1.58
 
     // Unresolvable symbol __sync_synchronize
     // 1.39 hook_addr((uintptr_t)so_mod.text_base + 0x0009e630, (uintptr_t)&sync_synchronize);
-    // 1.58
-    hook_addr((uintptr_t)so_mod.text_base + 0x0009ef58, (uintptr_t)&sync_synchronize);
+    hook_addr((uintptr_t)so_mod.text_base + 0x0009ef58, (uintptr_t)&sync_synchronize); // 1.58
 
     // Other patches
     patch__info_menu__init();

@@ -1,5 +1,5 @@
 /*
- * io.h
+ * reimpl/io.h
  *
  * Wrappers and implementations for some of IO functions for optimization
  * and bridging to SceLibc.
@@ -98,8 +98,6 @@ int fseeko_soloader(FILE * a, off_t b, int c);
 off_t ftello_soloader(FILE * a);
 
 int fcntl_soloader(int fd, int cmd, ... /* arg */ );
-
-int fsync_soloader(int fd);
 
 int fclose_soloader(FILE* f);
 

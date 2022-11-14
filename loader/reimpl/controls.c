@@ -1,3 +1,12 @@
+/*
+ * reimpl/controls.c
+ *
+ * Copyright (C) 2022 Volodymyr Atamanenko
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ */
+
 #include "main.h"
 #include "controls.h"
 
@@ -35,7 +44,7 @@ void controls_init() {
 void controls_poll() {
     pollTouch();
     pollPad();
-    pollAccel();
+    //pollAccel();
 }
 
 void pollTouch() {
@@ -89,7 +98,7 @@ float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
 extern volatile int silentLoad;
 
 void silentStartHelper() {
-    sceKernelDelayThread(29147 * 1000); // from first NativeOnDrawFrame to first controls prompt
+    sceKernelDelayThread(30000 * 1000); // from first NativeOnDrawFrame to first controls prompt
 
     NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
     sceKernelDelayThread(10000);
@@ -101,13 +110,19 @@ void silentStartHelper() {
     sceKernelDelayThread(10000);
     NativeOnKeyUp(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
 
-    sceKernelDelayThread(2019 * 1000); // from "PLAY" button to "RESUME" button appearance
+    sceKernelDelayThread(2100 * 1000); // from "PLAY" button to "RESUME" button appearance
 
     NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
     sceKernelDelayThread(10000);
     NativeOnKeyUp(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
 
     sceKernelDelayThread(700000); // Extra click in a second, just in case
+
+    NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+    sceKernelDelayThread(10000);
+    NativeOnKeyUp(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+
+    sceKernelDelayThread(700000); // And another one
 
     NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
     sceKernelDelayThread(10000);
@@ -137,11 +152,9 @@ void pollPad() {
 
         for (int i = 0; i < sizeof(mapping) / sizeof(ButtonMapping); i++) {
             if (pressed_buttons & mapping[i].sce_button) {
-                //debugPrintf("NativeOnKeyDown %i\n", mapping[i].android_button);
                 NativeOnKeyDown(&jni, (void *) 0x42424242, 600, mapping[i].android_button, 1);
             }
             if (released_buttons & mapping[i].sce_button) {
-                //debugPrintf("NativeOnKeyUp %i\n", mapping[i].android_button);
                 NativeOnKeyUp(&jni, (void *) 0x42424242, 600, mapping[i].android_button, 1);
             }
         }

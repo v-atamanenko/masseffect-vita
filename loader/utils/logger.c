@@ -43,7 +43,7 @@ int _log_warn(const char *fname, int lineno, const char *fxname, const char* fmt
 }
 
 int _log_debug(const char *fname, int lineno, const char *fxname, const char* fmt, ...) {
-//#ifdef DEBUG_SOLOADER
+#ifdef DEBUG_SOLOADER
     char fmt_real[4096];
     snprintf(fmt_real, 2047, "[DEBUG][%s:%d][%s] %s\n", fname, lineno, fxname, fmt);
 
@@ -51,7 +51,7 @@ int _log_debug(const char *fname, int lineno, const char *fxname, const char* fm
     va_start(list, fmt);
     vprintf(fmt_real, list);
     va_end(list);
-//#endif
+#endif
     return 0;
 }
 

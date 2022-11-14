@@ -14,7 +14,6 @@
 #include "main.h"
 
 #include <pthread.h>
-#include <kubridge.h>
 #include <psp2/sysmodule.h>
 #include <psp2/appmgr.h>
 #include <psp2/kernel/threadmgr.h>
@@ -25,32 +24,31 @@
 #include "reimpl/controls.h"
 #include "utils/glutil.h"
 #include "utils/logger.h"
-#include "utils/dialog.h"
 #include "utils/settings.h"
 
 __attribute__((unused)) int _newlib_heap_size_user = MEMORY_NEWLIB_MB * 1024 * 1024;
 
 so_module so_mod;
 
-KuKernelExceptionHandler nextHandler;
+volatile int wantQuit = 0; // Flag to tell the main loop to quit.
+volatile int deserializationBugCaught = 0; // Flag that shows that the known deserialization bug happened.
 
-void UndefInstrHandler(KuKernelExceptionContext *exceptionContext)
-{
-    printf("Caugt exception type 0x%x, ignoring.\n",exceptionContext->exceptionType);
-    exceptionContext->pc += 4;
-}
-
-int wantQuit = 0;
-volatile int savesBroke = 0;
+// Silent load is when we pretend that it's a loading screen while actually
+// rebooting the game and shadow-clicking "Resume" to bypass a bug.
 volatile int silentLoad = 0;
+
+void (*Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init)(JNIEnv* env, jobject* obj, AudioTrack audioTrack, int i, int i2, int i3);
+void (*Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release)(JNIEnv* env);
+
+extern int* waitForOrientation;
 
 int main(int argc, char*argv[]) {
     loadSettings();
     soloader_init_all();
 
     for (int i = 0; i < argc; ++i)
-        if (strstr(argv[i], "-silent")) silentLoad = 1;
-
+        if (strstr(argv[i], "-silent"))
+            silentLoad = 1;
 
     // Running the .so in a thread with enlarged stack size.
     pthread_t t;
@@ -60,13 +58,6 @@ int main(int argc, char*argv[]) {
     pthread_create(&t, &attr, game_thread, NULL);
     pthread_join(t, NULL);
 }
-
-void (*Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init)(JNIEnv* env, jobject* obj, AudioTrack audioTrack, int i, int i2, int i3);
-void (*Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release)(JNIEnv* env);
-
-extern int* waitForOrientation;
-
-
 
 void* game_thread() {
     int (*JNI_OnLoad)(JavaVM* jvm) = (void*)so_symbol(&so_mod,"JNI_OnLoad");
@@ -122,15 +113,14 @@ void* game_thread() {
 
         if (*waitForOrientation == 1) { *waitForOrientation = 0; }
         if (wantQuit) break;
-        if (savesBroke) {
+        if (deserializationBugCaught) {
             for (int i = 0; i < 3; ++i) {
                 drawFakeLoadingScreen();
                 gl_swap();
             }
             char argp[512];
             sprintf(argp, "-silent");
-            int ret = sceAppMgrLoadExec("app0:/eboot.bin", (char * const*)((const char*[]){argp, 0}), NULL);
-            fprintf("ret1 0x%x\n", ret);
+            sceAppMgrLoadExec("app0:/eboot.bin", (char * const*)((const char*[]){argp, 0}), NULL);
             while(1) sceKernelDelayThread(10000);
         }
     }

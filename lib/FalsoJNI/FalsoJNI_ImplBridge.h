@@ -1,10 +1,7 @@
-#ifndef FALSOJNI_IMPL_BRIDGE
-#define FALSOJNI_IMPL_BRIDGE
-
 /*
- * jni.h
+ * FalsoJNI_ImplBridge.h
  *
- * Fake Java Native Interface, providing JVM and Env objects.
+ * Fake Java Native Interface, providing JavaVM and JNIEnv objects.
  *
  * Copyright (C) 2021 Andy Nguyen
  * Copyright (C) 2021 Rinnegatamante
@@ -14,11 +11,12 @@
  * of the MIT license. See the LICENSE file for details.
  */
 
+#ifndef FALSOJNI_IMPL_BRIDGE
+#define FALSOJNI_IMPL_BRIDGE
+
 #include "config.h"
 #include "utils/utils.h"
 #include "jni.h"
-
-
 
 /// DYNAMICALLY ALLOCATED ARRAYS
 

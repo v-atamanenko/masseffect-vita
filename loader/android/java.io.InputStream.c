@@ -1,3 +1,12 @@
+/*
+ * android/java.io.InputStream.c
+ *
+ * Copyright (C) 2022 Volodymyr Atamanenko
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ */
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,7 +20,7 @@
 #include "utils/utils.h"
 
 #include "java.io.InputStream.h"
-
+#include "utils/logger.h"
 
 FILE* f = NULL;
 int fd = -1;
@@ -38,7 +47,7 @@ jint InputStream_read(jmethodID id, va_list args) {
 
     if (!f) {
         if (fd == -1) {
-            debugPrintf("[java.io.InputStream.read()] File descriptor is NULL.\n");
+            log_error("[java.io.InputStream.read()] File descriptor is NULL.\n");
             return -1;
         }
     }
@@ -64,7 +73,7 @@ jint InputStream_read(jmethodID id, va_list args) {
 // public void close ()
 // https://developer.android.com/reference/android/content/res/AssetManager#close()
 void InputStream_close(jmethodID id, va_list args) {
-    debugPrintf("JNI: Method Call: InputStream_close() / id: %i\n", id);
+    logv_debug("JNI: Method Call: InputStream_close() / id: %i", id);
     //pthread_mutex_destroy(&mut);
     if (f) {
         fclose(f);
@@ -79,11 +88,11 @@ void InputStream_close(jmethodID id, va_list args) {
 // public long skip(long n)
 // https://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html#skip(long)
 jlong InputStream_skip(jmethodID id, va_list args) {
-    debugPrintf("JNI: Method Call: InputStream_skip() / id: %i\n", id);
+    logv_debug("JNI: Method Call: InputStream_skip() / id: %i", id);
     int64_t off = va_arg(args, int64_t);
 
     if (!f) {
-        debugPrintf("[java.io.InputStream.skip()] File descriptor is NULL.\n");
+        log_error("[java.io.InputStream.skip()] File descriptor is NULL.");
         return -1;
     }
 
@@ -102,7 +111,7 @@ jobject InputStream_open(jmethodID id, va_list args) {
     // This method is supposed to initialize the asset to be opened, but
     // since we don't need that, let's just return a dummy string that can
     // be freed later.
-    debugPrintf("JNI: Method Call: InputStream_open() / id: %i\n", id);
+    logv_debug("JNI: Method Call: InputStream_open() / id: %i", id);
     //pthread_mutex_init(&mut, NULL);
     return strdup("nop");
 }
@@ -110,7 +119,7 @@ jobject InputStream_open(jmethodID id, va_list args) {
 // public AssetFileDescriptor openFd (String fileName)
 // https://developer.android.com/reference/android/content/res/AssetManager#openFd(java.lang.String)
 jint InputStream_openFd(jmethodID id, va_list args) {
-    debugPrintf("JNI: Method Call: InputStream_openFd() / id: %i\n", id);
+    logv_debug("JNI: Method Call: InputStream_openFd() / id: %i", id);
     const char* fileName = va_arg(args, const char*);
 
     char temp[1024];
@@ -120,20 +129,17 @@ jint InputStream_openFd(jmethodID id, va_list args) {
         sprintf(temp, "%s%s", assetsPathPrefix, fileName);
     }
 
-
-    debugPrintf("[java.io.InputStream] InputStream_openFd(\"%s\")\n", temp);
+    logv_debug("[java.io.InputStream] InputStream_openFd(\"%s\")\n", temp);
     fd = open(temp, O_RDONLY);
     return fd;
 }
-
-
 
 // public String[] list (String path)
 // https://developer.android.com/reference/android/content/res/AssetManager#list(java.lang.String)
 jobject InputStream_list(jmethodID id, va_list args) {
     const char* path_tmp = va_arg(args, const char*);
 
-    debugPrintf("JNI: Method Call: InputStream_list() / id: %i / path: \"%s\" (0x%x)\n", id, path_tmp, path_tmp);
+    logv_debug("JNI: Method Call: InputStream_list() / id: %i / path: \"%s\" (0x%x)", id, path_tmp, path_tmp);
 
     char* path = malloc(512 * sizeof(char)); // freed in _internal()
     snprintf(path, 512, "%s%s", assetsPathPrefix, path_tmp);
@@ -214,10 +220,10 @@ jobject InputStream_list(jmethodID id, va_list args) {
 // public long getLength ()
 // https://developer.android.com/reference/android/content/res/AssetFileDescriptor#getLength()
 jlong InputStream_getLength(jmethodID id, va_list args) {
-    debugPrintf("JNI: Method Call: InputStream_getLength() / id: %i / fd: %i\n", id, fd);
+    logv_debug("JNI: Method Call: InputStream_getLength() / id: %i / fd: %i", id, fd);
 
     if (fd == -1) {
-        debugPrintf("[java.io.InputStream.getLength()] Error: fd is invalid\n");
+        log_error("[java.io.InputStream.getLength()] Error: fd is invalid");
         return -1;
     }
 

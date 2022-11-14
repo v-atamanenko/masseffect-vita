@@ -1,5 +1,5 @@
 /*
- * pthr.h
+ * reimpl/pthr.h
  *
  * Wrapper for vitasdk/newlib pthread functions to work with
  * Android's pthread struct which is different

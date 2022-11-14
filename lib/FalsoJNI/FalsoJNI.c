@@ -1,10 +1,8 @@
 /*
- * jni.c
+ * FalsoJNI.c
  *
  * Fake Java Native Interface, providing JavaVM and JNIEnv objects.
  *
- * Copyright (C) 2021 Andy Nguyen
- * Copyright (C) 2021 Rinnegatamante
  * Copyright (C) 2022 Volodymyr Atamanenko
  *
  * This software may be modified and distributed under the terms
@@ -255,7 +253,7 @@ jclass GetObjectClass(JNIEnv* env, jobject obj) {
     fjni_logv_dbg("[JNI] GetObjectClass(0x%x)", (int)obj);
     // Due to the way we implement class methods, it's safe to not waste
     // resources on mapping objects to classess and return just a constant val.
-    return (jclass)0x44444444;
+    return (jclass)0x42424242;
 }
 
 jboolean IsInstanceOf(JNIEnv* env, jobject obj, jclass clazz) {

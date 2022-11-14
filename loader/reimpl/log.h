@@ -1,5 +1,5 @@
 /*
- * log.h
+ * reimpl/log.h
  *
  * Implementations for different Android logging functions.
  *
@@ -21,8 +21,5 @@ int android_log_write(int prio, const char *tag, const char *msg);
 int android_log_print(int prio, const char *tag, const char *fmt, ...);
 
 int android_log_vprint(int pri, const char *tag, const char *fmt, va_list lst);
-
-void mbedtls_debug_print_msg( const void *ssl, int level, const char *file,
-                              int line, const char *format, ... );
 
 #endif // SOLOADER_LOG_H

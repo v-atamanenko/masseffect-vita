@@ -19,14 +19,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <inttypes.h>
 #include <math.h>
 #include <netdb.h>
 #include <string.h>
 #include <wchar.h>
-#include <wctype.h>
-#include <zlib.h>
 
 #include <sys/stat.h>
 #include <sys/unistd.h>
@@ -34,58 +30,24 @@
 #include <sys/time.h>
 
 #include <psp2/kernel/clib.h>
-#include <dirent.h>
-#include <utime.h>
 
 #include "utils/glutil.h"
-#include "libc_bridge.h"
 
-#include "reimpl/env.h"
 #include "reimpl/io.h"
 #include "reimpl/log.h"
 #include "reimpl/mem.h"
 #include "reimpl/sys.h"
 #include "reimpl/pthr.h"
 
-#define PAGE_SIZE 4096
 unsigned int __page_size = 4096;
 
-extern void * _ZNSt9exceptionD2Ev;
-extern void * _ZSt17__throw_bad_allocv;
-extern void * _ZSt9terminatev;
-extern void * _ZdaPv;
-extern void * _ZdlPv;
-extern void * _Znaj;
-extern void * __cxa_allocate_exception;
-extern void * __cxa_begin_catch;
-extern void * __cxa_end_catch;
-extern void * __cxa_free_exception;
-extern void * __cxa_rethrow;
-extern void * __cxa_throw;
-extern void * __gxx_personality_v0;
-extern void *_ZNSt8bad_castD1Ev;
-extern void *_ZTISt8bad_cast;
-extern void *_ZTISt9exception;
-extern void *_ZTVN10__cxxabiv117__class_type_infoE;
-extern void *_ZTVN10__cxxabiv120__si_class_type_infoE;
-extern void *_ZTVN10__cxxabiv121__vmi_class_type_infoE;
-extern void *_Znwj;
 extern void *__aeabi_atexit;
-extern void *__aeabi_memclr;
-extern void *__aeabi_memcpy;
-extern void *__aeabi_memmove;
-extern void *__aeabi_memset;
-
-extern void *__cxa_atexit;
 extern void *__cxa_finalize;
 extern void *__cxa_pure_virtual;
-extern void *__cxa_call_unexpected;
 extern void *__cxa_guard_acquire;
 extern void *__cxa_guard_release;
-extern void *__gnu_unwind_frame;
 extern void *__stack_chk_fail;
 extern void *__stack_chk_guard;
-extern void *__dso_handle;
 
 extern const char *BIONIC_ctype_;
 extern const short *BIONIC_tolower_tab_;
@@ -93,6 +55,7 @@ extern const short *BIONIC_toupper_tab_;
 
 int timezone = 0;
 char *__tzname[2] = { (char *) "GMT", (char *) "GMT" };
+static FILE __sF_fake[3];
 
 #define __ATOMIC_INLINE__ static __inline__ __attribute__((always_inline))
 
@@ -121,102 +84,6 @@ __ATOMIC_INLINE__ int __atomic_cmpxchg(int old_value, int new_value, volatile in
     return __sync_val_compare_and_swap(ptr, old_value, new_value) != old_value;
 }
 
-int __gnu_Unwind_Find_exidx_tempwrap() { fprintf(stderr, "ret0d call!!! __gnu_Unwind_Find_exidx_tempwrap\n"); return 0; }
-int poll_tempwrap() { fprintf(stderr, "ret0d call!!! poll_tempwrap\n"); return 0; }
-int __cxa_type_match_tempwrap() { fprintf(stderr, "ret0d call!!! __cxa_type_match_tempwrap\n"); return 0; }
-int __cxa_begin_cleanup_tempwrap() { fprintf(stderr, "ret0d call!!! __cxa_begin_cleanup_tempwrap\n"); return 0; }
-int __isinf_tempwrap() { fprintf(stderr, "ret0d call!!! __isinf_tempwrap\n"); return 0; }
-int prctl_tempwrap() { fprintf(stderr, "ret0d call!!! prctl_tempwrap\n"); return 0; }
-int sysconf_tempwrap() { fprintf(stderr, "ret0d call!!! sysconf_tempwrap\n"); return 0; }
-int setenv_ret0() { fprintf(stderr, "ret0d call!!! setenv_ret0\n"); return 0; }
-int waitpid_tempwrap() { fprintf(stderr, "ret0d call!!! waitpid_tempwrap\n"); return 0; }
-int execv_tempwrap() { fprintf(stderr, "ret0d call!!! execv_tempwrap\n"); return 0; }
-
-int glDrawTexfOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexfOES_tempwrap\n"); return 0; }
-int glDrawTexsvOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexsvOES_tempwrap\n"); return 0; }
-int glIsRenderbufferOES_tempwrap() { fprintf(stderr, "ret0d call!!! glIsRenderbufferOES_tempwrap\n"); return 0; }
-int glDrawTexxvOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexxvOES_tempwrap\n"); return 0; }
-int glTexGenxvOES_tempwrap() { fprintf(stderr, "ret0d call!!! glTexGenxvOES_tempwrap\n"); return 0; }
-int glDrawTexivOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexivOES_tempwrap\n"); return 0; }
-int glTexGenfOES_tempwrap() { fprintf(stderr, "ret0d call!!! glTexGenfOES_tempwrap\n"); return 0; }
-int glGetTexGenxvOES_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexGenxvOES_tempwrap\n"); return 0; }
-int glGetTexGenivOES_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexGenivOES_tempwrap\n"); return 0; }
-int glMatrixIndexPointerOES_tempwrap() { fprintf(stderr, "ret0d call!!! glMatrixIndexPointerOES_tempwrap\n"); return 0; }
-int glTexGenfvOES_tempwrap() { fprintf(stderr, "ret0d call!!! glTexGenfvOES_tempwrap\n"); return 0; }
-int glWeightPointerOES_tempwrap() { fprintf(stderr, "ret0d call!!! glWeightPointerOES_tempwrap\n"); return 0; }
-int glCurrentPaletteMatrixOES_tempwrap() { fprintf(stderr, "ret0d call!!! glCurrentPaletteMatrixOES_tempwrap\n"); return 0; }
-int glGetBufferPointervOES_tempwrap() { fprintf(stderr, "ret0d call!!! glGetBufferPointervOES_tempwrap\n"); return 0; }
-int glEGLImageTargetRenderbufferStorageOES_tempwrap() { fprintf(stderr, "ret0d call!!! glEGLImageTargetRenderbufferStorageOES_tempwrap\n"); return 0; }
-int glLoadPaletteFromModelViewMatrixOES_tempwrap() { fprintf(stderr, "ret0d call!!! glLoadPaletteFromModelViewMatrixOES_tempwrap\n"); return 0; }
-int glDrawTexsOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexsOES_tempwrap\n"); return 0; }
-int glGetTexGenfvOES_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexGenfvOES_tempwrap\n"); return 0; }
-int glDrawTexiOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexiOES_tempwrap\n"); return 0; }
-int glEGLImageTargetTexture2DOES_tempwrap() { fprintf(stderr, "ret0d call!!! glEGLImageTargetTexture2DOES_tempwrap\n"); return 0; }
-int glQueryMatrixxOES_tempwrap() { fprintf(stderr, "ret0d call!!! glQueryMatrixxOES_tempwrap\n"); return 0; }
-int glTexGenxOES_tempwrap() { fprintf(stderr, "ret0d call!!! glTexGenxOES_tempwrap\n"); return 0; }
-int glDrawTexxOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexxOES_tempwrap\n"); return 0; }
-int glTexGenivOES_tempwrap() { fprintf(stderr, "ret0d call!!! glTexGenivOES_tempwrap\n"); return 0; }
-int glDrawTexfvOES_tempwrap() { fprintf(stderr, "ret0d call!!! glDrawTexfvOES_tempwrap\n"); return 0; }
-int glTexGeniOES_tempwrap() { fprintf(stderr, "ret0d call!!! glTexGeniOES_tempwrap\n"); return 0; }
-int glGetPointerv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetPointerv_tempwrap\n"); return 0; }
-int glCompressedTexSubImage2D_tempwrap() { fprintf(stderr, "ret0d call!!! glCompressedTexSubImage2D_tempwrap\n"); return 0; }
-int glSampleCoverage_tempwrap() { fprintf(stderr, "ret0d call!!! glSampleCoverage_tempwrap\n"); return 0; }
-int glPointSizePointerOES_tempwrap() { fprintf(stderr, "ret0d call!!! glPointSizePointerOES_tempwrap\n"); return 0; }
-int glLightf_tempwrap() { fprintf(stderr, "ret0d call!!! glLightf_tempwrap\n"); return 0; }
-int glGetLightfv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetLightfv_tempwrap\n"); return 0; }
-int glPointParameterf_tempwrap() { fprintf(stderr, "ret0d call!!! glPointParameterf_tempwrap\n"); return 0; }
-int glPointParameterxv_tempwrap() { fprintf(stderr, "ret0d call!!! glPointParameterxv_tempwrap\n"); return 0; }
-int glMultiTexCoord4x_tempwrap() { fprintf(stderr, "ret0d call!!! glMultiTexCoord4x_tempwrap\n"); return 0; }
-int glTexEnviv_tempwrap() { fprintf(stderr, "ret0d call!!! glTexEnviv_tempwrap\n"); return 0; }
-int glGetLightxv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetLightxv_tempwrap\n"); return 0; }
-int glSampleCoveragex_tempwrap() { fprintf(stderr, "ret0d call!!! glSampleCoveragex_tempwrap\n"); return 0; }
-int glMaterialx_tempwrap() { fprintf(stderr, "ret0d call!!! glMaterialx_tempwrap\n"); return 0; }
-int glPointParameterfv_tempwrap() { fprintf(stderr, "ret0d call!!! glPointParameterfv_tempwrap\n"); return 0; }
-int glTexParameterxv_tempwrap() { fprintf(stderr, "ret0d call!!! glTexParameterxv_tempwrap\n"); return 0; }
-int glGetTexParameterfv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexParameterfv_tempwrap\n"); return 0; }
-int glCopyTexImage2D_tempwrap() { fprintf(stderr, "ret0d call!!! glCopyTexImage2D_tempwrap\n"); return 0; }
-int glMaterialf_tempwrap() { fprintf(stderr, "ret0d call!!! glMaterialf_tempwrap\n"); return 0; }
-int glGetTexEnvxv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexEnvxv_tempwrap\n"); return 0; }
-int glGetTexParameterxv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexParameterxv_tempwrap\n"); return 0; }
-int glGetMaterialxv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetMaterialxv_tempwrap\n"); return 0; }
-int glGetClipPlanef_tempwrap() { fprintf(stderr, "ret0d call!!! glGetClipPlanef_tempwrap\n"); return 0; }
-int glGetFixedv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetFixedv_tempwrap\n"); return 0; }
-int glGetMaterialfv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetMaterialfv_tempwrap\n"); return 0; }
-int glNormal3x_tempwrap() { fprintf(stderr, "ret0d call!!! glNormal3x_tempwrap\n"); return 0; }
-int glGetTexParameteriv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexParameteriv_tempwrap\n"); return 0; }
-int glLightModelf_tempwrap() { fprintf(stderr, "ret0d call!!! glLightModelf_tempwrap\n"); return 0; }
-int glTexParameterfv_tempwrap() { fprintf(stderr, "ret0d call!!! glTexParameterfv_tempwrap\n"); return 0; }
-int glIsBuffer_tempwrap() { fprintf(stderr, "ret0d call!!! glIsBuffer_tempwrap\n"); return 0; }
-int glGetTexEnviv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexEnviv_tempwrap\n"); return 0; }
-int glGetClipPlanex_tempwrap() { fprintf(stderr, "ret0d call!!! glGetClipPlanex_tempwrap\n"); return 0; }
-int glLightx_tempwrap() { fprintf(stderr, "ret0d call!!! glLightx_tempwrap\n"); return 0; }
-int glMultiTexCoord4f_tempwrap() { fprintf(stderr, "ret0d call!!! glMultiTexCoord4f_tempwrap\n"); return 0; }
-int glPointParameterx_tempwrap() { fprintf(stderr, "ret0d call!!! glPointParameterx_tempwrap\n"); return 0; }
-int glGetTexEnvfv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetTexEnvfv_tempwrap\n"); return 0; }
-int glLightModelx_tempwrap() { fprintf(stderr, "ret0d call!!! glLightModelx_tempwrap\n"); return 0; }
-int glLogicOp_tempwrap() { fprintf(stderr, "ret0d call!!! glLogicOp_tempwrap\n"); return 0; }
-int glPixelStorei_tempwrap() { /*fprintf(stderr, "ret0d call!!! glPixelStorei_tempwrap\n");*/ return 0; }
-int glCopyTexSubImage2D_tempwrap() { fprintf(stderr, "ret0d call!!! glCopyTexSubImage2D_tempwrap\n"); return 0; }
-int glGetRenderbufferParameterivOES_tempwrap() { fprintf(stderr, "ret0d call!!! glGetRenderbufferParameterivOES_tempwrap\n"); return 0; }
-
-int ioctl_tempwrap() { fprintf(stderr, "ret0d call!!! ioctl_tempwrap\n"); return 0; }
-int setlocale_tempwrap() { fprintf(stderr, "ret0d call!!! setlocale_tempwrap\n"); return 0; }
-int statfs_tempwrap() { fprintf(stderr, "ret0d call!!! statfs_tempwrap\n"); return 0; }
-int sigaction_tempwrap() { fprintf(stderr, "ret0d call!!! sigaction_tempwrap\n"); return 0; }
-
-int glBlendColor_tempwrap() { fprintf(stderr, "ret0d call!!! glBlendColor_tempwrap\n"); return 0; }
-int glGetUniformfv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetUniformfv_tempwrap\n"); return 0; }
-int glDetachShader_tempwrap() { fprintf(stderr, "ret0d call!!! glDetachShader_tempwrap\n"); return 0; }
-int glGetUniformiv_tempwrap() { fprintf(stderr, "ret0d call!!! glGetUniformiv_tempwrap\n"); return 0; }
-int glValidateProgram_tempwrap() { fprintf(stderr, "ret0d call!!! glValidateProgram_tempwrap\n"); return 0; }
-int glGetRenderbufferParameteriv_tempwrap(GLenum target,
-                                          GLenum pname,
-                                          GLint *params) { fprintf(stderr, "ret0d call!!! glGetRenderbufferParameteriv(0x%x, 0x%x, 0x%x)\n", target, pname, params); return 0; }
-int glIsShader_tempwrap() { fprintf(stderr, "ret0d call!!! glIsShader_tempwrap\n"); return 0; }
-int glGetShaderPrecisionFormat_tempwrap() { fprintf(stderr, "ret0d call!!! glGetShaderPrecisionFormat_tempwrap\n"); return 0; }
-
-static FILE __sF_fake[3];
-
 // NOLINT(cppcoreguidelines-interfaces-global-init)
 so_default_dynlib default_dynlib[] = {
         { "__aeabi_atexit", (uintptr_t)&__aeabi_atexit },
@@ -231,10 +98,10 @@ so_default_dynlib default_dynlib[] = {
         { "__cxa_guard_acquire", (uintptr_t)&__cxa_guard_acquire },
         { "__cxa_guard_release", (uintptr_t)&__cxa_guard_release },
         { "__cxa_pure_virtual", (uintptr_t)&__cxa_pure_virtual },
-        { "__cxa_type_match", (uintptr_t)&__cxa_type_match_tempwrap },
+        { "__cxa_type_match", (uintptr_t)&ret0 },
         { "__errno", (uintptr_t)&__errno },
-        { "__gnu_Unwind_Find_exidx", (uintptr_t)&__gnu_Unwind_Find_exidx_tempwrap },
-        { "__isinf", (uintptr_t)&__isinf_tempwrap },
+        { "__gnu_Unwind_Find_exidx", (uintptr_t)&ret0 },
+        { "__isinf", (uintptr_t)&ret0 },
         { "__page_size", (uintptr_t)&__page_size },
         { "__sF", (uintptr_t)&__sF_fake },
         { "__stack_chk_fail", (uintptr_t)&__stack_chk_fail },
@@ -278,7 +145,7 @@ so_default_dynlib default_dynlib[] = {
         { "freeaddrinfo", (uintptr_t)&freeaddrinfo },
         { "fseek", (uintptr_t)&fseek },
         { "fstat", (uintptr_t)&fstat_soloader },
-        { "fsync", (uintptr_t)&fsync_soloader },
+        { "fsync", (uintptr_t)&fsync },
         { "ftell", (uintptr_t)&ftell },
         { "ftruncate", (uintptr_t)&ftruncate },
         { "fwrite", (uintptr_t)&fwrite },
@@ -295,7 +162,7 @@ so_default_dynlib default_dynlib[] = {
         { "glBindFramebuffer", (uintptr_t)&glBindFramebuffer },
         { "glBindRenderbuffer", (uintptr_t)&glBindRenderbuffer },
         { "glBindTexture", (uintptr_t)&glBindTexture },
-        { "glBlendColor", (uintptr_t)&glBlendColor_tempwrap },
+        { "glBlendColor", (uintptr_t)&ret0 },
         { "glBlendEquation", (uintptr_t)&glBlendEquation },
         { "glBlendEquationSeparate", (uintptr_t)&glBlendEquationSeparate },
         { "glBlendFunc", (uintptr_t)&glBlendFunc },
@@ -310,9 +177,9 @@ so_default_dynlib default_dynlib[] = {
         { "glColorMask", (uintptr_t)&glColorMask },
         { "glCompileShader", (uintptr_t)&ret0 },
         { "glCompressedTexImage2D", (uintptr_t)&glCompressedTexImage2D },
-        { "glCompressedTexSubImage2D", (uintptr_t)&glCompressedTexSubImage2D_tempwrap },
-        { "glCopyTexImage2D", (uintptr_t)&glCopyTexImage2D_tempwrap },
-        { "glCopyTexSubImage2D", (uintptr_t)&glCopyTexSubImage2D_tempwrap },
+        { "glCompressedTexSubImage2D", (uintptr_t)&ret0 },
+        { "glCopyTexImage2D", (uintptr_t)&ret0 },
+        { "glCopyTexSubImage2D", (uintptr_t)&ret0 },
         { "glCreateProgram", (uintptr_t)&glCreateProgram },
         { "glCreateShader", (uintptr_t)&glCreateShader },
         { "glCullFace", (uintptr_t)&glCullFace },
@@ -325,7 +192,7 @@ so_default_dynlib default_dynlib[] = {
         { "glDepthFunc", (uintptr_t)&glDepthFunc },
         { "glDepthMask", (uintptr_t)&glDepthMask },
         { "glDepthRangef", (uintptr_t)&glDepthRangef },
-        { "glDetachShader", (uintptr_t)&glDetachShader_tempwrap },
+        { "glDetachShader", (uintptr_t)&ret0 },
         { "glDisable", (uintptr_t)&glDisable },
         { "glDisableVertexAttribArray", (uintptr_t)&glDisableVertexAttribArray },
         { "glDrawArrays", (uintptr_t)&glDrawArrays },
@@ -354,27 +221,27 @@ so_default_dynlib default_dynlib[] = {
         { "glGetIntegerv", (uintptr_t)&glGetIntegerv },
         { "glGetProgramInfoLog", (uintptr_t)&glGetProgramInfoLog },
         { "glGetProgramiv", (uintptr_t)&glGetProgramiv },
-        { "glGetRenderbufferParameteriv", (uintptr_t)&glGetRenderbufferParameteriv_tempwrap },
+        { "glGetRenderbufferParameteriv", (uintptr_t)&ret0 },
         { "glGetShaderInfoLog", (uintptr_t)&glGetShaderInfoLog },
-        { "glGetShaderPrecisionFormat", (uintptr_t)&glGetShaderPrecisionFormat_tempwrap },
+        { "glGetShaderPrecisionFormat", (uintptr_t)&ret0 },
         { "glGetShaderSource", (uintptr_t)&glGetShaderSource },
         { "glGetShaderiv", (uintptr_t)&glGetShaderiv },
         { "glGetString", (uintptr_t)&glGetString },
-        { "glGetTexParameterfv", (uintptr_t)&glGetTexParameterfv_tempwrap },
-        { "glGetTexParameteriv", (uintptr_t)&glGetTexParameteriv_tempwrap },
+        { "glGetTexParameterfv", (uintptr_t)&ret0 },
+        { "glGetTexParameteriv", (uintptr_t)&ret0 },
         { "glGetUniformLocation", (uintptr_t)&glGetUniformLocation },
-        { "glGetUniformfv", (uintptr_t)&glGetUniformfv_tempwrap },
-        { "glGetUniformiv", (uintptr_t)&glGetUniformiv_tempwrap },
+        { "glGetUniformfv", (uintptr_t)&ret0 },
+        { "glGetUniformiv", (uintptr_t)&ret0 },
         { "glGetVertexAttribPointerv", (uintptr_t)&glGetVertexAttribPointerv },
         { "glGetVertexAttribfv", (uintptr_t)&glGetVertexAttribfv },
         { "glGetVertexAttribiv", (uintptr_t)&glGetVertexAttribiv },
         { "glHint", (uintptr_t)&glHint },
-        { "glIsBuffer", (uintptr_t)&glIsBuffer_tempwrap },
+        { "glIsBuffer", (uintptr_t)&ret0 },
         { "glIsEnabled", (uintptr_t)&glIsEnabled },
         { "glIsFramebuffer", (uintptr_t)&glIsFramebuffer },
         { "glIsProgram", (uintptr_t)&glIsProgram },
         { "glIsRenderbuffer", (uintptr_t)&glIsRenderbuffer },
-        { "glIsShader", (uintptr_t)&glIsShader_tempwrap },
+        { "glIsShader", (uintptr_t)&ret0 },
         { "glIsTexture", (uintptr_t)&glIsTexture },
         { "glLineWidth", (uintptr_t)&glLineWidth },
         { "glLinkProgram", (uintptr_t)&glLinkProgram },
@@ -383,7 +250,7 @@ so_default_dynlib default_dynlib[] = {
         { "glReadPixels", (uintptr_t)&glReadPixels },
         { "glReleaseShaderCompiler", (uintptr_t)&glReleaseShaderCompiler },
         { "glRenderbufferStorage", (uintptr_t)&glRenderbufferStorage },
-        { "glSampleCoverage", (uintptr_t)&glSampleCoverage_tempwrap },
+        { "glSampleCoverage", (uintptr_t)&ret0 },
         { "glScissor", (uintptr_t)&glScissor },
         { "glShaderBinary", (uintptr_t)&glShaderBinary },
         { "glShaderSource", (uintptr_t)&glShaderSourceHook },
@@ -395,7 +262,7 @@ so_default_dynlib default_dynlib[] = {
         { "glStencilOpSeparate", (uintptr_t)&glStencilOpSeparate },
         { "glTexImage2D", (uintptr_t)&glTexImage2D },
         { "glTexParameterf", (uintptr_t)&glTexParameterf },
-        { "glTexParameterfv", (uintptr_t)&glTexParameterfv_tempwrap },
+        { "glTexParameterfv", (uintptr_t)&ret0 },
         { "glTexParameteri", (uintptr_t)&glTexParameteri },
         { "glTexParameteriv", (uintptr_t)&glTexParameteriv },
         { "glTexSubImage2D", (uintptr_t)&glTexSubImage2D },
@@ -419,7 +286,7 @@ so_default_dynlib default_dynlib[] = {
         { "glUniformMatrix3fv", (uintptr_t)&glUniformMatrix3fv },
         { "glUniformMatrix4fv", (uintptr_t)&glUniformMatrix4fv },
         { "glUseProgram", (uintptr_t)&glUseProgram },
-        { "glValidateProgram", (uintptr_t)&glValidateProgram_tempwrap },
+        { "glValidateProgram", (uintptr_t)&ret0 },
         { "glVertexAttrib1f", (uintptr_t)&glVertexAttrib1f },
         { "glVertexAttrib1fv", (uintptr_t)&glVertexAttrib1fv },
         { "glVertexAttrib2f", (uintptr_t)&glVertexAttrib2f },
@@ -431,7 +298,7 @@ so_default_dynlib default_dynlib[] = {
         { "glVertexAttribPointer", (uintptr_t)&glVertexAttribPointer },
         { "glViewport", (uintptr_t)&glViewport },
         { "gmtime", (uintptr_t)&gmtime },
-        { "ioctl", (uintptr_t)&ioctl_tempwrap },
+        { "ioctl", (uintptr_t)&ret0 },
         { "ldexp", (uintptr_t)&ldexp },
         { "localtime", (uintptr_t)&localtime },
         { "localtime_r", (uintptr_t)&localtime_r },
@@ -456,7 +323,7 @@ so_default_dynlib default_dynlib[] = {
         { "poll", (uintptr_t)&ret0 },
         { "pow", (uintptr_t)&pow },
         { "powf", (uintptr_t)&powf },
-        { "prctl", (uintptr_t)&prctl_tempwrap },
+        { "prctl", (uintptr_t)&ret0 },
         { "pthread_attr_destroy", (uintptr_t)&pthread_attr_destroy_soloader },
         { "pthread_attr_init", (uintptr_t)&pthread_attr_init_soloader },
         { "pthread_attr_setdetachstate", (uintptr_t)&pthread_attr_setdetachstate_soloader },
@@ -509,10 +376,10 @@ so_default_dynlib default_dynlib[] = {
         { "send", (uintptr_t)&ret0 },
         { "sendto", (uintptr_t)&ret0 },
         { "setjmp", (uintptr_t)&setjmp },
-        { "setlocale", (uintptr_t)&setlocale_tempwrap },
+        { "setlocale", (uintptr_t)&ret0 },
         { "setsockopt", (uintptr_t)&setsockopt },
         { "shutdown", (uintptr_t)&shutdown },
-        { "sigaction", (uintptr_t)&sigaction_tempwrap },
+        { "sigaction", (uintptr_t)&ret0 },
         { "sin", (uintptr_t)&sin },
         { "sinf", (uintptr_t)&sinf },
         { "snprintf", (uintptr_t)&snprintf },
@@ -522,7 +389,7 @@ so_default_dynlib default_dynlib[] = {
         { "sqrtf", (uintptr_t)&sqrtf },
         { "srand48", (uintptr_t)&srand48 },
         { "stat", (uintptr_t)&stat_soloader },
-        { "statfs", (uintptr_t)&statfs_tempwrap },
+        { "statfs", (uintptr_t)&ret0 },
         { "strcat", (uintptr_t)&strcat },
         { "strchr", (uintptr_t)&strchr },
         { "strcmp", (uintptr_t)&strcmp },

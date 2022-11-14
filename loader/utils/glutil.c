@@ -30,13 +30,12 @@ void gl_preload() {
 }
 
 void gl_init() {
-    vglInitExtended(0, 960, 544, 8 * 1024 * 1024, SCE_GXM_MULTISAMPLE_4X);
+    vglInitExtended(0, 960, 544, 6 * 1024 * 1024, SCE_GXM_MULTISAMPLE_4X);
 }
 
 void gl_swap() {
     vglSwapBuffers(GL_FALSE);
 }
-
 
 void glShaderSourceHook(GLuint shader, GLsizei count, const GLchar **string,
                         const GLint *_length) {
@@ -138,15 +137,15 @@ void drawFakeLoadingScreen() {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     float vtx[4 * 2] = {
-            0, 544,
+            0,   544,
             960, 544,
             0,   0,
-            960,   0
+            960, 0
     };
     float txcoord[4 * 2] = {
-            -1,   0,
+            -1,  0,
             0,   0,
-            -1,   -1,
+            -1,  -1,
             0,   -1,
     };
     glEnableClientState(GL_VERTEX_ARRAY);

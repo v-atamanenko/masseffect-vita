@@ -1,5 +1,5 @@
 /*
- * io.c
+ * reimpl/io.c
  *
  * Wrappers and implementations for some of IO functions for optimization
  * and bridging to SceLibc.
@@ -18,18 +18,12 @@
 #include <libc_bridge.h>
 #include <sys/stat.h>
 #include <sys/unistd.h>
-#include <malloc.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <dirent.h>
-#include <pthread.h>
 #include <psp2/kernel/threadmgr.h>
 
-
 #include "utils/utils.h"
-#include "utils/dialog.h"
-
-char lastOpenedPath[1024];
+#include "utils/logger.h"
 
 char* fix_path(const char * orig_path) {
     char* path_temp = malloc(PATH_MAX * sizeof(char));
@@ -57,7 +51,7 @@ dirent64_bionic * dirent_newlib_to_dirent_bionic(struct dirent* dirent_newlib) {
 
 struct dirent * readdir_soloader(DIR * dir) {
     struct dirent* ret = readdir(dir);
-    //debugPrintf("[io] readdir()\n");
+    log_debug("[io] readdir()");
     return ret;
 }
 
@@ -74,11 +68,9 @@ int readdir_r_soloader(DIR *dirp, dirent64_bionic *entry, dirent64_bionic **resu
         free(entry_tmp);
     }
 
-    //debugPrintf("[io] readdir_r()\n");
+    log_debug("[io] readdir_r()");
     return ret;
 }
-
-
 
 FILE* previouslyOpenedFiles[2];
 
@@ -97,7 +89,7 @@ FILE *fopen_soloader(char *fname, char *mode) {
     }
 
     FILE* ret =  fopen(fname_real, mode);
-    //debugPrintf("[io] fopen(%s) (%s): 0x%x\n", fname_real, fname, ret);
+    logv_debug("[io] fopen(%s) (%s): 0x%x", fname_real, fname, ret);
     free(fname_real);
 
     if (strstr(fname, "DroidSans.ttf") && ret != NULL) {
@@ -141,20 +133,20 @@ int _musl2newlib(int flags)
 int open_soloader(char *_fname, int flags) {
     flags = _musl2newlib(flags);
     int ret = open(_fname, flags);
-    //debugPrintf("[io] open(%s, %x): %i\n", _fname, flags, ret);
+    logv_debug("[io] open(%s, %x): %i", _fname, flags, ret);
     return ret;
 }
 
 int read_soloader(int __fd, void *__buf, size_t __nbyte) {
     int ret = read(__fd, __buf, __nbyte);
-    //debugPrintf("[io] read(fd#%i, %x, %i): %i\n", __fd, (int)__buf, __nbyte, ret);
+    logv_debug("[io] read(fd#%i, %x, %i): %i", __fd, (int)__buf, __nbyte, ret);
     return ret;
 }
 
 DIR* opendir_soloader(char* _pathname) {
     char * pathname = fix_path(_pathname);
     DIR* ret = opendir(pathname);
-    //debugPrintf("[io] opendir(\"%s\"): 0x%x\n", pathname, ret);
+    logv_debug("[io] opendir(\"%s\"): 0x%x", pathname, ret);
     free(pathname);
     return ret;
 }
@@ -165,36 +157,30 @@ int fstat_soloader(int fd, void *statbuf) {
     if (res == 0)
         *(uint64_t *)(statbuf + 0x30) = st.st_size;
 
-    //debugPrintf("[io] fstat(fd#%i): %i\n", fd, res);
+    logv_debug("[io] fstat(fd#%i): %i", fd, res);
     return res;
 }
 
 int write_soloader(int fd, const void *buf, int count) {
     int ret = write(fd, buf, count);
-    //debugPrintf("[io] write(fd#%i, 0x%x, %i): %i\n", fd, buf, count, ret);
+    logv_debug("[io] write(fd#%i, 0x%x, %i): %i", fd, buf, count, ret);
     return ret;
 }
 
 int fcntl_soloader(int fd, int cmd, ... /* arg */ ) {
-    //debugPrintf("[io] fcntl(fd#%i, cmd#%i)\n", fd, cmd);
+    logv_debug("[io] fcntl(fd#%i, cmd#%i)", fd, cmd);
     return 0;
-}
-
-int fsync_soloader(int fd) {
-    int ret = fsync(fd);
-    //debugPrintf("[io] fsync(fd#%i): %i\n", fd, ret);
-    return fsync(fd);
 }
 
 off_t lseek_soloader(int fildes, off_t offset, int whence) {
     off_t ret = lseek(fildes, offset, whence);
-    //debugPrintf("[io] lseek(fd#i, %i, %i): %i\n", fildes, offset, whence, ret);
+    logv_debug("[io] lseek(fd#i, %i, %i): %i", fildes, offset, whence, ret);
     return ret;
 }
 
 int close_soloader(int fd) {
     int ret = close(fd);
-    //debugPrintf("[io] close(fd#%i): %i\n", fd, ret);
+    logv_debug("[io] close(fd#%i): %i", fd, ret);
     return ret;
 }
 
@@ -206,14 +192,14 @@ int fclose_soloader(FILE * f) {
     }
 
     int ret = fclose(f);
-    //debugPrintf("[io] fclose(0x%x): %i\n", f, ret);
+    logv_debug("[io] fclose(0x%x): %i", f, ret);
     return ret;
 }
 
 
 int closedir_soloader(DIR* dir) {
     int ret = closedir(dir);
-    //debugPrintf("[io] closedir(0x%x): %i\n", dir, ret);
+    logv_debug("[io] closedir(0x%x): %i", dir, ret);
     return ret;
 }
 
@@ -245,20 +231,20 @@ int stat_soloader(char *_pathname, stat64_bionic *statbuf) {
         statbuf->st_ctime_nsec = 0;
     }
 
-    //debugPrintf("[io] stat(%s): %i", pathname, res);
+    logv_debug("[io] stat(%s): %i", pathname, res);
     free(pathname);
     return res;
 }
 
 int fseeko_soloader(FILE * a, off_t b, int c) {
     int ret = fseeko(a,b,c);
-    //debugPrintf("[io] fseeko(0x%x, %i, %i): %i\n", a,b,c,ret);
+    logv_debug("[io] fseeko(0x%x, %i, %i): %i", a,b,c,ret);
     return ret;
 }
 
 off_t ftello_soloader(FILE * a) {
     off_t ret = ftello(a);
-    //debugPrintf("[io] ftello(0x%x): %i\n", a, ret);
+    logv_debug("[io] ftello(0x%x): %i", a, ret);
     return ret;
 }
 

@@ -3,7 +3,6 @@
  */
 so_hook im__scene2d_new__Node__SetVisible_hook;
 void im__scene2d_new__Node__SetVisible(void *this,bool param_1) {
-
     if (!this) {
         log_error("im__scene2d_new__Node__SetVisible: null");
         return;

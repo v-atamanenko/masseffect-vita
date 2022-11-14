@@ -4,7 +4,7 @@ so_hook RemoveUnstructuredObjectField_hook;
 
 int GetUnstructuredObjectField(void *this, int *param_1, int param_2, void **param_3) {
     if (!param_1) {
-        savesBroke = 1;
+        deserializationBugCaught = 1;
         log_error("GetUnstructuredObjectField: NULL");
         sceKernelDelayThread(3000000);
         for (int i = 0; i < 3; ++i) {
@@ -22,7 +22,7 @@ int GetUnstructuredObjectField(void *this, int *param_1, int param_2, void **par
 
 void* AddUnstructuredObjectField(void *this,int *param_1,int param_2,void *param_3) {
     if (!param_1) {
-        savesBroke = 1;
+        deserializationBugCaught = 1;
         log_error("AddUnstructuredObjectField: NULL");
         sceKernelDelayThread(3000000);
         for (int i = 0; i < 3; ++i) {
@@ -41,7 +41,7 @@ void* AddUnstructuredObjectField(void *this,int *param_1,int param_2,void *param
 void RemoveUnstructuredObjectField(void *this,int *param_1,void *param_2) {
     if (!param_1) {
         log_error("RemoveUnstructuredObjectField: NULL");
-        savesBroke = 1;
+        deserializationBugCaught = 1;
         sceKernelDelayThread(3000000);
         for (int i = 0; i < 3; ++i) {
             drawFakeLoadingScreen();

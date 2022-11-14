@@ -1,5 +1,7 @@
 /*
- * utils/logger.c
+ * FalsoJNI_Logger.c
+ *
+ * Fake Java Native Interface, providing JavaVM and JNIEnv objects.
  *
  * Copyright (C) 2022 Volodymyr Atamanenko
  *

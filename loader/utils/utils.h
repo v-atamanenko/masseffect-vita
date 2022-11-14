@@ -1,5 +1,5 @@
 /*
- * utils.h
+ * utils/utils.h
  *
  * Common helper utilities.
  *
@@ -16,23 +16,17 @@
 #include <sys/types.h>
 #include "config.h"
 
-void* retNULL(void);
-
 int ret0(void);
 
 __attribute__((unused)) int ret1(void);
 
 int retminus1(void);
 
-void do_nothing(void);
-
 int file_exists(const char *path);
-
-int debugPrintf(char *text, ...);
 
 int check_kubridge(void);
 
-int string_ends_with(const char * str, const char * suffix);
+__attribute__((unused)) int string_ends_with(const char * str, const char * suffix);
 
 void strprepend(char* s, const char* t);
 
@@ -61,8 +55,6 @@ long long current_timestamp();
 char *strremove(char *str, const char *sub);
 
 char* strreplace(char *target, const char *needle, const char *replacement);
-
-void check_init_mutex(pthread_mutex_t* mut);
 
 int8_t is_dir(char* p);
 

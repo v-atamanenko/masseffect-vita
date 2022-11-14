@@ -1,5 +1,5 @@
 /*
- * utils.c
+ * utils/utils.c
  *
  * Common helper utilities.
  *
@@ -16,15 +16,13 @@
 #include "patch.h"
 #include "glutil.h"
 #include "main.h"
+#include "logger.h"
 
 #include <psp2/io/stat.h>
 
 #include <stdio.h>
-#include <stdarg.h>
 #include <string.h>
 #include <sys/time.h>
-#include <stdlib.h>
-#include <pthread.h>
 #include <sys/dirent.h>
 #include <dirent.h>
 #include <psp2/apputil.h>
@@ -40,10 +38,6 @@
 // For check_kubridge
 SceUID _vshKernelSearchModuleByName(const char *, int *);
 
-void* retNULL(void) {
-    return NULL;
-}
-
 int ret0(void) {
     return 0;
 }
@@ -56,34 +50,9 @@ int retminus1(void) {
     return -1;
 }
 
-void do_nothing(void) {
-    // Silence is golden.
-}
-
 int file_exists(const char *path) {
     SceIoStat stat;
     return sceIoGetstat(path, &stat) >= 0;
-}
-
-// OpenSLES wants `assert()` and somehow we don't have it?
-void assert(int i) {
-    if (!i) {
-        debugPrintf("assertion failed\n");
-    }
-}
-
-int debugPrintf(char *text, ...) {
-#ifdef DEBUG
-    va_list list;
-    char string[0x8000];
-
-    va_start(list, text);
-    vsnprintf(string, 0x8000, text, list);
-    va_end(list);
-
-    fprintf(stderr, "%s", string);
-#endif
-    return 0;
 }
 
 int check_kubridge(void) {
@@ -91,7 +60,7 @@ int check_kubridge(void) {
     return _vshKernelSearchModuleByName("kubridge", search_unk);
 }
 
-int string_ends_with(const char * str, const char * suffix)
+__attribute__((unused)) int string_ends_with(const char * str, const char * suffix)
 {
     int str_len = (int)strlen(str);
     int suffix_len = (int)strlen(suffix);
@@ -165,19 +134,6 @@ void strprepend(char* s, const char* t)
     memcpy(s, t, len);
 }
 
-void check_init_mutex(pthread_mutex_t* mut) {
-    if (!mut) {
-        fprintf(stderr, "MUTEX INIT!!!\n");
-        pthread_mutex_t initTmpNormal;
-        fprintf(stderr, "MUTEX INIT2!!!\n");
-        mut = calloc(1, sizeof(pthread_mutex_t));
-        fprintf(stderr, "MUTEX INIT3!!!\n");
-        memcpy(mut, &initTmpNormal, sizeof(pthread_mutex_t));
-        fprintf(stderr, "MUTEX INIT4!!!\n");
-        pthread_mutex_init(mut, NULL);
-    }
-}
-
 inline int8_t is_dir(char* p) {
     DIR* filetest = opendir(p);
     if (filetest != NULL) {
@@ -201,8 +157,6 @@ int soloader_init_all() {
         fprintf(stderr, "BUFFER %s\n", buffer);
         if (strstr(buffer, "-config"))
             sceAppMgrLoadExec("app0:/companion.bin", NULL, NULL);
-        if (strstr(buffer, "-silent"))
-            silentLoad = 1;
     }
 
     scePowerSetArmClockFrequency(444);
@@ -212,32 +166,32 @@ int soloader_init_all() {
 
     if (check_kubridge() < 0)
         fatal_error("Error kubridge.skprx is not installed.");
-    debugPrintf("check_kubridge() passed.\n");
+    log_info("check_kubridge() passed.\n");
 
     if (so_file_load(&so_mod, SO_PATH, LOAD_ADDRESS) < 0)
         fatal_error("Error could not load %s.", SO_PATH);
-    debugPrintf("so_file_load(%s) passed.\n", SO_PATH);
+    logv_info("so_file_load(%s) passed.\n", SO_PATH);
 
     so_relocate(&so_mod);
-    debugPrintf("so_relocate() passed.\n");
+    log_info("so_relocate() passed.\n");
 
     resolve_imports(&so_mod);
-    debugPrintf("so_resolve() passed.\n");
+    log_info("so_resolve() passed.\n");
 
     so_patch();
-    debugPrintf("so_patch() passed.\n");
+    log_info("so_patch() passed.\n");
 
     so_flush_caches(&so_mod);
-    debugPrintf("so_flush_caches() passed.\n");
+    log_info("so_flush_caches() passed.\n");
 
     so_initialize(&so_mod);
-    debugPrintf("so_initialize() passed.\n");
+    log_info("so_initialize() passed.\n");
 
     gl_preload();
-    debugPrintf("gl_preload() passed.\n");
+    log_info("gl_preload() passed.\n");
 
     jni_init();
-    debugPrintf("jni_init() passed.\n");
+    log_info("jni_init() passed.\n");
 
     if (!is_dir("ux0:data/masseffect/assets/var")) {
         mkdir("ux0:data/masseffect/assets/var", 0700);
@@ -246,4 +200,6 @@ int soloader_init_all() {
     if (!is_dir("ux0:data/masseffect/assets/var1")) {
         mkdir("ux0:data/masseffect/assets/var1", 0700);
     }
+
+    return 1;
 }

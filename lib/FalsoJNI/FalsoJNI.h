@@ -1,3 +1,14 @@
+/*
+ * FalsoJNI.h
+ *
+ * Fake Java Native Interface, providing JavaVM and JNIEnv objects.
+ *
+ * Copyright (C) 2022 Volodymyr Atamanenko
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license. See the LICENSE file for details.
+ */
+
 #ifndef FALSOJNI_H
 #define FALSOJNI_H
 

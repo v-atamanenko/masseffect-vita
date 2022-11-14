@@ -21,6 +21,6 @@
 
 extern so_module so_mod;
 
-_Noreturn void *deadspace_main();
+void *game_thread();
 
 #endif // SOLOADER_MAIN_H

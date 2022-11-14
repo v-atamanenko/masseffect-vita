@@ -22,6 +22,7 @@
 void gl_preload();
 void gl_init();
 void gl_swap();
+void drawFakeLoadingScreen();
 
 void glShaderSourceHook(GLuint shader, GLsizei count,
                         const GLchar **string, const GLint *_length);

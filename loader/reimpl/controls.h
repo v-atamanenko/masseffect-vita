@@ -49,5 +49,6 @@ void controls_poll();
 void pollTouch();
 void pollPad();
 void pollAccel();
+void runSilentStartHelper();
 
 #endif // SOLOADER_CONTROLS_H

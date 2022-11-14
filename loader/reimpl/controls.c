@@ -2,12 +2,12 @@
 #include "controls.h"
 
 #include <FalsoJNI/FalsoJNI.h>
-
-#define L_INNER_DEADZONE 0.13f
-#define R_INNER_DEADZONE 0.12f
+#include <psp2/kernel/threadmgr.h>
+#include <pthread.h>
+#include "utils/settings.h"
 
 #define L_OUTER_DEADZONE 0.96f
-#define R_OUTER_DEADZONE 0.989f
+#define R_OUTER_DEADZONE 0.98f
 
 int lastX[SCE_TOUCH_MAX_REPORT] = {-1, -1, -1, -1, -1, -1, -1, -1};
 int lastY[SCE_TOUCH_MAX_REPORT] = {-1, -1, -1, -1, -1, -1, -1, -1};
@@ -86,6 +86,45 @@ uint32_t old_buttons = 0, current_buttons = 0, pressed_buttons = 0, released_but
 float lastLx = 0.0f, lastLy = 0.0f, lastRx = 0.0f, lastRy = 0.0f;
 float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
 
+extern volatile int silentLoad;
+
+void silentStartHelper() {
+    sceKernelDelayThread(29147 * 1000); // from first NativeOnDrawFrame to first controls prompt
+
+    NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+    sceKernelDelayThread(10000);
+    NativeOnKeyUp(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+
+    sceKernelDelayThread(3036 * 1000); // from first controls prompt to active "PLAY" button
+
+    NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+    sceKernelDelayThread(10000);
+    NativeOnKeyUp(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+
+    sceKernelDelayThread(2019 * 1000); // from "PLAY" button to "RESUME" button appearance
+
+    NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+    sceKernelDelayThread(10000);
+    NativeOnKeyUp(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+
+    sceKernelDelayThread(700000); // Extra click in a second, just in case
+
+    NativeOnKeyDown(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+    sceKernelDelayThread(10000);
+    NativeOnKeyUp(&jni, (void *) 0x42424242, 600, AKEYCODE_BUTTON_A, 1);
+
+    silentLoad = 0;
+}
+
+void runSilentStartHelper() {
+    pthread_t t;
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 64*1024);
+    pthread_create(&t, &attr, silentStartHelper, NULL);
+    pthread_detach(t);
+}
+
 void pollPad() {
     SceCtrlData pad;
     sceCtrlPeekBufferPositiveExt2(0, &pad, 1);
@@ -115,13 +154,13 @@ void pollPad() {
     rx = ((float)pad.rx - 128.0f) / 128.0f;
     ry = ((float)pad.ry - 128.0f) / 128.0f;
 
-    if (fabsf(lx) < L_INNER_DEADZONE)
+    if (fabsf(lx) < leftStickDeadZone)
         lx = 0.0f;
-    if (fabsf(ly) < L_INNER_DEADZONE)
+    if (fabsf(ly) < leftStickDeadZone)
         ly = 0.0f;
-    if (fabsf(rx) < R_INNER_DEADZONE)
+    if (fabsf(rx) < rightStickDeadZone)
         rx = 0.0f;
-    if (fabsf(ry) < R_INNER_DEADZONE)
+    if (fabsf(ry) < rightStickDeadZone)
         ry = 0.0f;
 
     if (fabsf(lx) > L_OUTER_DEADZONE) {
@@ -136,17 +175,18 @@ void pollPad() {
         if (ly < -L_OUTER_DEADZONE)
             ly = -1.0f;
     }
+
     if (fabsf(rx) > R_OUTER_DEADZONE) {
         if (rx > R_OUTER_DEADZONE)
-            rx = 1.0f;
+            rx = R_OUTER_DEADZONE;
         if (rx < -R_OUTER_DEADZONE)
-            rx = -1.0f;
+            rx = -R_OUTER_DEADZONE;
     }
-    if (fabsf(rx) > R_OUTER_DEADZONE) {
+    if (fabsf(ry) > R_OUTER_DEADZONE) {
         if (ry > R_OUTER_DEADZONE)
-            ry = 1.0f;
+            ry = R_OUTER_DEADZONE;
         if (ry < -R_OUTER_DEADZONE)
-            ry = -1.0f;
+            ry = -R_OUTER_DEADZONE;
     }
 
     if ((rx == 0.f && ry == 0.f) && (lastRx != 0.f || lastRy != 0.f)) {

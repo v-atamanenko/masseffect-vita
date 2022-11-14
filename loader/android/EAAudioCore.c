@@ -202,6 +202,7 @@ void _AudioTrack_release() {
 }
 
 int audio_port = -1;
+extern volatile int silentLoad;
 
 int EAAudioCore_AudioTrack_write(int id, va_list args) {
     jshort* buf = va_arg(args, jshort*);
@@ -213,7 +214,7 @@ int EAAudioCore_AudioTrack_write(int id, va_list args) {
         printf("got audio_port %i\n", audio_port);
     }
 
-    sceAudioOutOutput(audio_port, buf);
+    if (!silentLoad) sceAudioOutOutput(audio_port, buf);
 
     return len;
 }

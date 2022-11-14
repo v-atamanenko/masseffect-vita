@@ -14,6 +14,8 @@
 #include "utils/glutil.h"
 #include "utils/dialog.h"
 #include "sha1.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -103,4 +105,53 @@ void glShaderSourceHook(GLuint shader, GLsizei count, const GLchar **string,
 
         free(shaderBuf);
     }
+}
+
+uint32_t fakeLS_texture = 0;
+
+GLuint quickLoadTexture(const char* fname) {
+    FILE* f = fopen(fname, "r");
+    if (!f) return NULL;
+    int image_width, image_height, depth;
+    unsigned char* data = stbi_load_from_file(f, &image_width, &image_height, &depth, 0);
+    fclose(f);
+
+    GLuint image_texture;
+    glGenTextures(1, &image_texture);
+    glBindTexture(GL_TEXTURE_2D, image_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    return image_texture;
+}
+
+void drawFakeLoadingScreen() {
+    if (fakeLS_texture == 0) {
+        fakeLS_texture = quickLoadTexture("app0:data/fake-loading-screen.png");
+    }
+
+    glUseProgram(0);
+    glBindTexture(GL_TEXTURE_2D, fakeLS_texture);
+    glDisable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrthof(0, 960, 544, 0, 0, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    float vtx[4 * 2] = {
+            0, 544,
+            960, 544,
+            0,   0,
+            960,   0
+    };
+    float txcoord[4 * 2] = {
+            -1,   0,
+            0,   0,
+            -1,   -1,
+            0,   -1,
+    };
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glVertexPointer(2, GL_FLOAT, 0, vtx);
+    glTexCoordPointer(2, GL_FLOAT, 0, txcoord);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }

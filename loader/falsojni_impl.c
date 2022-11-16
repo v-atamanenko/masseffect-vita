@@ -363,12 +363,12 @@ int GetDefaultHeight(jmethodID id, va_list args) {
 }
 
 float GetDpiX(jmethodID id, va_list args) {
-    logv_debug("JNI: Method Call: GetDpiX() / id: %i", id);
+    //logv_debug("JNI: Method Call: GetDpiX() / id: %i", id);
     return 200.0f;
 }
 
 float GetDpiY(jmethodID id, va_list args) {
-    logv_debug("JNI: Method Call: GetDpiY() / id: %n", id);
+    //logv_debug("JNI: Method Call: GetDpiY() / id: %n", id);
     return 200.0f;
 }
 
@@ -397,7 +397,7 @@ void SetUpdateFrequency(jmethodID id, va_list args) {
 }
 
 void finish(jmethodID id, va_list args) {
-    fprintf(stderr, "MainActivity.finish();");
+    fprintf(stderr, "MainActivity.finish();\n");
     abort();
 }
 
@@ -588,13 +588,6 @@ MethodsBoolean methodsBoolean[] = {
 };
 
 NameToFieldID nameToFieldId[] = {
-    { 1, "WINDOW_SERVICE",         FIELD_TYPE_STRING },
-    { 2, "gamepadAxisIndices",     FIELD_TYPE_INT_ARRAY },
-    { 3, "gamepadAxisMinVals",     FIELD_TYPE_INT_ARRAY },
-    { 4, "gamepadAxisMaxVals",     FIELD_TYPE_INT_ARRAY },
-    { 5, "gamepadButtonIndices",   FIELD_TYPE_INT_ARRAY },
-    { 6, "main_obb_mounted_path",  FIELD_TYPE_STRING },
-    { 7, "patch_obb_mounted_path", FIELD_TYPE_STRING },
     { 8, "screenWidth",            FIELD_TYPE_INT },
     { 9, "screenHeight",           FIELD_TYPE_INT },
     { 10, "is_licensed",           FIELD_TYPE_BOOLEAN }
@@ -609,23 +602,7 @@ FieldsInt fieldsInt[] = {
     { 9, 544 },
 };
 
-FieldsString fieldsString[] = {
-    { 1, "window_service_field_val" },
-    { 6, "" },
-    { 7, "" },
-};
-
-int _fieldIntArray2_value[] = {0, 1, 2, 3, 4, 5 };
-int _fieldIntArray3_value[] = {0, 0, 0, 0, 0, 0 };
-int _fieldIntArray4_value[] = {127, 127, 127, 127, 127, 127 };
-int _fieldIntArray5_value[] = {188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 96, 97, 98, 99, 100, 101, 102, 104, 103, 105, 108, 109, 110, 3, 19, 20, 21, 22, 23};
-
-FieldsIntArray fieldsIntArray[] = {
-    { 2, _fieldIntArray2_value, sizeof(_fieldIntArray2_value) / sizeof (int) },
-    { 3, _fieldIntArray3_value, sizeof(_fieldIntArray3_value) / sizeof (int) },
-    { 4, _fieldIntArray4_value, sizeof(_fieldIntArray4_value) / sizeof (int) },
-    { 5, _fieldIntArray5_value, sizeof(_fieldIntArray5_value) / sizeof (int) },
-};
+FieldsObject fieldsObject[] = {};
 
 MethodsByte methodsByte[] = {};
 MethodsChar methodsChar[] = {};

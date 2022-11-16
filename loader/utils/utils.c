@@ -154,7 +154,6 @@ int soloader_init_all() {
     if (eventParam.type == 0x05) {
         char buffer[2048];
         sceAppUtilAppEventParseLiveArea(&eventParam, buffer);
-        fprintf(stderr, "BUFFER %s\n", buffer);
         if (strstr(buffer, "-config"))
             sceAppMgrLoadExec("app0:/companion.bin", NULL, NULL);
     }

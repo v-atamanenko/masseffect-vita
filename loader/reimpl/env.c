@@ -12,6 +12,7 @@
 #include <string.h>
 #include "env.h"
 #include "utils/utils.h"
+#include "utils/logger.h"
 
 typedef enum EnvVarsIds {
     ENV_VAR_UNKNOWN = 0,
@@ -37,11 +38,11 @@ int get_env_var_id(const char* name) {
 }
 
 char * getenv_soloader(const char *var) {
-    debugPrintf("Requested getenv(\"%s\")\n", var);
+    logv_debug("Requested getenv(\"%s\")", var);
     switch (get_env_var_id(var)) {
         case ENV_VAR_UNKNOWN:
         default:
-            debugPrintf("Requested unknown env var: %s\n", var);
+            logv_error("Requested unknown env var: %s", var);
             return NULL;
     }
 }

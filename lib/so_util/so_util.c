@@ -16,7 +16,7 @@
 #include "main.h"
 #include "utils/dialog.h"
 #include "so_util.h"
-#include "utils/utils.h"
+#include "utils/logger.h"
 
 typedef struct b_enc {
     union {
@@ -80,7 +80,6 @@ so_hook hook_thumb(uintptr_t addr, uintptr_t dst) {
 }
 
 so_hook hook_arm(uintptr_t addr, uintptr_t dst) {
-    printf("ARM HOOK\n");
     if (addr == 0)
         return;
     uint32_t hook[2];
@@ -166,7 +165,7 @@ int _so_load(so_module *mod, SceUID so_blockid, void *so_data, uintptr_t load_ad
                 mod->cave_base = mod->cave_head = prog_data + mod->phdr[i].p_memsz;
                 mod->cave_base = ALIGN_MEM(mod->cave_base, 0x4);
                 mod->cave_head = mod->cave_base;
-                debugPrintf("code cave: %d bytes (@0x%08X).\n", mod->cave_size, mod->cave_base);
+                logv_info("code cave: %d bytes (@0x%08X).", mod->cave_size, mod->cave_base);
 
                 data_addr = (uintptr_t)prog_data + prog_size;
             } else {
@@ -439,7 +438,7 @@ int so_resolve(so_module *mod, so_default_dynlib *default_dynlib, int size_defau
                     if (!default_dynlib_only) {
                         uintptr_t link = so_resolve_link(mod, mod->dynstr + sym->st_name);
                         if (link) {
-                            // debugPrintf("Resolved from dependencies: %s\n", mod->dynstr + sym->st_name);
+                            // logv_debug("Resolved from dependencies: %s", mod->dynstr + sym->st_name);
                             if (type == R_ARM_ABS32) {
                                 val = *ptr + link;
                                 kuKernelCpuUnrestrictedMemcpy(ptr, &val, sizeof(uintptr_t));
@@ -651,7 +650,7 @@ void so_symbol_fix_ldmia(so_module *mod, const char *symbol) {
 
         //Is this an LDMIA instruction with a R0-R12 base register?
         if (((inst & 0xFFF00000) == 0xE8900000) && (((inst >> 16) & 0xF) < 13) ) {
-            debugPrintf("Found possibly misaligned LDMIA on 0x%08X, trying to fix it... (instr: 0x%08X, to 0x%08X)\n", addr, *(uint32_t*)addr, mod->patch_head);
+            logv_warn("Found possibly misaligned LDMIA on 0x%08X, trying to fix it... (instr: 0x%08X, to 0x%08X)", addr, *(uint32_t*)addr, mod->patch_head);
             trampoline_ldm(mod, addr);
         }
     }

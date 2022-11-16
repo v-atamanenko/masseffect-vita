@@ -37,7 +37,7 @@ volatile int deserializationBugCaught = 0; // Flag that shows that the known des
 // rebooting the game and shadow-clicking "Resume" to bypass a bug.
 volatile int silentLoad = 0;
 
-void (*Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init)(JNIEnv* env, jobject* obj, AudioTrack audioTrack, int i, int i2, int i3);
+void (*Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init)(JNIEnv* env, jobject* obj, void * audioTrack, int i, int i2, int i3);
 void (*Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release)(JNIEnv* env);
 
 extern int* waitForOrientation;
@@ -50,11 +50,14 @@ int main(int argc, char*argv[]) {
         if (strstr(argv[i], "-silent"))
             silentLoad = 1;
 
+    gl_init();
+    log_info("gl_init() passed");
+
     // Running the .so in a thread with enlarged stack size.
     pthread_t t;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    pthread_attr_setstacksize(&attr, 256*1024);
+    pthread_attr_setstacksize(&attr, 384 * 1024);
     pthread_create(&t, &attr, game_thread, NULL);
     pthread_join(t, NULL);
 }
@@ -71,9 +74,6 @@ void* game_thread() {
 
     Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init = (void*)so_symbol(&so_mod,"Java_com_ea_EAAudioCore_AndroidEAAudioCore_Init");
     Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release = (void*)so_symbol(&so_mod,"Java_com_ea_EAAudioCore_AndroidEAAudioCore_Release");
-
-    gl_init();
-    log_info("gl_init() passed");
 
     JNI_OnLoad(&jvm);
     log_info("JNI_OnLoad() passed");

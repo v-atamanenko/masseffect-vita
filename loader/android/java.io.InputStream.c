@@ -24,30 +24,56 @@
 
 FILE* f = NULL;
 int fd = -1;
-pthread_mutex_t mut;
+pthread_mutex_t* inputStream_mutex = NULL;
 
 size_t listSize = 0;
 size_t listAllocedSize = 0;
 char** list = NULL;
 int calls_count = 0;
 
-const char* assetsPathPrefix = DATA_PATH_INT;
+void inputStream_lock() {
+    if (inputStream_mutex == NULL) {
+        pthread_mutex_t initTmpNormal;
+        inputStream_mutex = malloc(sizeof(pthread_mutex_t));
+        memcpy(inputStream_mutex, &initTmpNormal, sizeof(pthread_mutex_t));
+
+        if (pthread_mutex_init(inputStream_mutex, NULL) != 0) {
+            log_error("Failed to allocate inputStream mutex");
+            inputStream_mutex = NULL;
+            return;
+        }
+    }
+
+    pthread_mutex_lock(inputStream_mutex);
+}
+
+void inputStream_unlock() {
+    pthread_mutex_unlock(inputStream_mutex);
+}
 
 // public int read(byte[] b, int off, int len)
 // https://docs.oracle.com/javase/7/docs/api/java/io/InputStream.html#read()
 jint InputStream_read(jmethodID id, va_list args) {
-    //debugPrintf("JNI: Method Call: InputStream_read() / id: %i\n", id);
+    //logv_debug("JNI: Method Call: InputStream_read() / id: %i", id);
     // Imporant note: there are also versions of read() with two and one arg;
     // here we assume that only the full version with 3 args is used, which is
     // dangerous.
 
-    char* b = va_arg(args, char*);
+    void* _b = va_arg(args, char*);
     int off = va_arg(args, int);
     int len = va_arg(args, int);
 
+    JavaDynArray * arr = jda_find(_b);
+    if (!arr) {
+        log_error("[java.io.InputStream.read()] Provided buffer is not a valid JDA.");
+        return 0;
+    }
+
+    char * b = arr->array;
+
     if (!f) {
         if (fd == -1) {
-            log_error("[java.io.InputStream.read()] File descriptor is NULL.\n");
+            log_error("[java.io.InputStream.read()] File descriptor is NULL.");
             return -1;
         }
     }
@@ -74,15 +100,18 @@ jint InputStream_read(jmethodID id, va_list args) {
 // https://developer.android.com/reference/android/content/res/AssetManager#close()
 void InputStream_close(jmethodID id, va_list args) {
     logv_debug("JNI: Method Call: InputStream_close() / id: %i", id);
-    //pthread_mutex_destroy(&mut);
+
     if (f) {
         fclose(f);
         f = NULL;
     }
+
     if (fd > -1) {
         close(fd);
         fd = -1;
     }
+
+    inputStream_unlock();
 }
 
 // public long skip(long n)
@@ -112,7 +141,7 @@ jobject InputStream_open(jmethodID id, va_list args) {
     // since we don't need that, let's just return a dummy string that can
     // be freed later.
     logv_debug("JNI: Method Call: InputStream_open() / id: %i", id);
-    //pthread_mutex_init(&mut, NULL);
+    inputStream_lock();
     return strdup("nop");
 }
 
@@ -126,10 +155,10 @@ jint InputStream_openFd(jmethodID id, va_list args) {
     if (strstr(fileName, "splash.png")) {
         sprintf(temp, "app0:/data/splash.png");
     } else {
-        sprintf(temp, "%s%s", assetsPathPrefix, fileName);
+        sprintf(temp, DATA_PATH_INT"%s", fileName);
     }
 
-    logv_debug("[java.io.InputStream] InputStream_openFd(\"%s\")\n", temp);
+    logv_debug("[java.io.InputStream] InputStream_openFd(\"%s\")", temp);
     fd = open(temp, O_RDONLY);
     return fd;
 }
@@ -141,8 +170,8 @@ jobject InputStream_list(jmethodID id, va_list args) {
 
     logv_debug("JNI: Method Call: InputStream_list() / id: %i / path: \"%s\" (0x%x)", id, path_tmp, path_tmp);
 
-    char* path = malloc(512 * sizeof(char)); // freed in _internal()
-    snprintf(path, 512, "%s%s", assetsPathPrefix, path_tmp);
+    char* path = malloc(512 * sizeof(char));
+    snprintf(path, 512, DATA_PATH_INT"%s", path_tmp);
 
     //pthread_mutex_lock(&mut);
 
@@ -202,14 +231,21 @@ jobject InputStream_list(jmethodID id, va_list args) {
         }
     }
 
-    char** list_ret = malloc(sizeof(char*) * listSize);
+    JavaDynArray * jda = jda_alloc((jsize)listSize, FIELD_TYPE_OBJECT);
+    if (!jda) {
+        log_error("Could not allocate array");
+        for (int u = 0; u < listSize; ++u) free(list[u]);
+        free(list);
+        return NULL;
+    }
+
+    char** list_ret = jda->array;
 
     for (int u = 0; u < listSize; ++u) {
         list_ret[u] = strdup(list[u]);
         free(list[u]);
     }
 
-    saveDynamicallyAllocatedArrayPointer(list_ret, (jsize)listSize);
     free(list);
     listSize = 0;
 

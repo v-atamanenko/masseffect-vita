@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <psp2/audioout.h>
+#include <FalsoJNI/FalsoJNI_ImplBridge.h>
 #include "EAAudioCore.h"
 #include "utils/logger.h"
 
@@ -19,13 +20,21 @@ extern volatile int silentLoad;
 int audio_port = -1;
 
 int EAAudioCore_AudioTrack_write(int id, va_list args) {
-    jshort* buf = va_arg(args, jshort*);
+    void* _buf = va_arg(args, void*);
     int32_t offs = va_arg(args, int32_t);
     int32_t len = va_arg(args, int32_t);
 
+    JavaDynArray * jda = jda_find(_buf);
+    if (!jda) {
+        log_error("Provided buffer is not a valid JDA.");
+        return 0;
+    }
+
+    jshort * buf = jda->array;
+
     if (audio_port == -1) {
         audio_port = sceAudioOutOpenPort(SCE_AUDIO_OUT_PORT_TYPE_BGM, 512, 44100, SCE_AUDIO_OUT_MODE_STEREO);
-        printf("got audio_port %i\n", audio_port);
+        logv_info("got audio_port %i\n", audio_port);
     }
 
     if (!silentLoad) sceAudioOutOutput(audio_port, buf);

@@ -35,10 +35,9 @@ extern FieldsChar fieldsChar[];
 extern FieldsDouble fieldsDouble[];
 extern FieldsFloat fieldsFloat[];
 extern FieldsInt fieldsInt[];
-extern FieldsIntArray fieldsIntArray[];
+extern FieldsObject fieldsObject[];
 extern FieldsLong fieldsLong[];
 extern FieldsShort fieldsShort[];
-extern FieldsString fieldsString[];
 
 extern size_t nameToMethodId_size();
 
@@ -61,10 +60,9 @@ extern size_t fieldsChar_size();
 extern size_t fieldsDouble_size();
 extern size_t fieldsFloat_size();
 extern size_t fieldsInt_size();
-extern size_t fieldsIntArray_size();
+extern size_t fieldsObject_size();
 extern size_t fieldsLong_size();
 extern size_t fieldsShort_size();
-extern size_t fieldsString_size();
 
 #define __FALSOJNI_IMPL_CONTAINER_SIZES \
 size_t nameToMethodId_size() { return sizeof nameToMethodId; } \
@@ -85,9 +83,8 @@ size_t fieldsChar_size() { return sizeof fieldsChar; } \
 size_t fieldsDouble_size() { return sizeof fieldsDouble; } \
 size_t fieldsFloat_size() { return sizeof fieldsFloat; } \
 size_t fieldsInt_size() { return sizeof fieldsInt; } \
-size_t fieldsIntArray_size() { return sizeof fieldsIntArray; } \
+size_t fieldsObject_size() { return sizeof fieldsObject; } \
 size_t fieldsLong_size() { return sizeof fieldsLong; } \
-size_t fieldsShort_size() { return sizeof fieldsShort; } \
-size_t fieldsString_size() { return sizeof fieldsString; }
+size_t fieldsShort_size() { return sizeof fieldsShort; }
 
 #endif // FALSOJNI_IMPL

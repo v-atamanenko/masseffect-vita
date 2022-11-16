@@ -39,10 +39,9 @@ FieldsChar fieldsChar[] = {};
 FieldsDouble fieldsDouble[] = {};
 FieldsFloat fieldsFloat[] = {};
 FieldsInt fieldsInt[] = {};
-FieldsIntArray fieldsIntArray[] = {};
+FieldsObject fieldsObject[] = {};
 FieldsLong fieldsLong[] = {};
 FieldsShort fieldsShort[] = {};
-FieldsString fieldsString[] = {};
 
 __FALSOJNI_IMPL_CONTAINER_SIZES
 

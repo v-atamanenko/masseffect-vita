@@ -20,35 +20,10 @@
 #include <malloc.h>
 #include <pthread.h>
 
-const char* fieldStringGet(jfieldID id) {
-    for (int i = 0; i < fieldsString_size() / sizeof(FieldsString); i++) {
-        if (fieldsString[i].id == (int)id) {
-            return fieldsString[i].value;
-        }
-    }
-    return NULL;
-}
-
-const int* fieldIntArrayGet(jfieldID id) {
-    for (int i = 0; i < fieldsIntArray_size() / sizeof(FieldsIntArray); i++) {
-        if (fieldsIntArray[i].id == (int)id) {
-            return fieldsIntArray[i].value;
-        }
-    }
-    return NULL;
-}
-
-jsize* fieldIntArrayGetLengthByPtr(const int * arr) {
-    for (int i = 0; i < fieldsIntArray_size() / sizeof(FieldsIntArray); i++) {
-        if (fieldsIntArray[i].value == arr) {
-            fprintf(stderr, "found array: id #%i\n", fieldsIntArray[i].id);
-            return &fieldsIntArray[i].length;
-        }
-    }
-    //fprintf(stderr, "not found int array\n");
-    return NULL;
-}
-
+JavaDynArray* javaDynArrays = NULL;
+pthread_mutex_t* javaDynArrays_mutex = NULL;
+size_t javaDynArrays_free = 0;
+size_t javaDynArrays_taken = 0;
 
 jfieldID getFieldIdByName(const char* name) {
     for (int i = 0; i < nameToFieldId_size() / sizeof(NameToFieldID); i++) {
@@ -61,53 +36,62 @@ jfieldID getFieldIdByName(const char* name) {
     return NULL;
 }
 
-// Field type Object can represent different types, so no macro here.
-jobject getObjectFieldValueById(jfieldID id) {
-    for (int i = 0; i < nameToFieldId_size() / sizeof(NameToFieldID); i++) {
-        if (nameToFieldId[i].id == (int)id) {
-            switch (nameToFieldId[i].f) {
-                case FIELD_TYPE_STRING: {
-                    const char *ret = fieldStringGet(id);
-                    if (ret) return (jobject)ret;
-                    value_fail:
-                    fjni_logv_warn("Field ID %i (\"%s\") is known but has no associated value defined", id, nameToFieldId[i].name);
-                    return NULL;
-                }
-                case FIELD_TYPE_INT_ARRAY: {
-                    const int *ret = fieldIntArrayGet(id);
-                    if (ret) return (jobject)ret;
-                    goto value_fail;
-                }
-                    // Add other types represented by type Object here when needed
-                case FIELD_TYPE_UNKNOWN:
-                default:
-                    fjni_logv_warn("Unknown field type for \"%s\"!\n", nameToFieldId[i].name);
-                    return NULL;
-            }
-        }
-    }
-
-    fjni_logv_warn("Unknown field id %i\n", (int)id);
-    return NULL;
-}
-
 const char* fieldTypeToStr(FIELD_TYPE t) {
     switch (t) {
         case FIELD_TYPE_INT:
             return "FIELD_TYPE_INT";
-        case FIELD_TYPE_STRING:
-            return "FIELD_TYPE_STRING";
+        case FIELD_TYPE_OBJECT:
+            return "FIELD_TYPE_OBJECT";
         case FIELD_TYPE_BOOLEAN:
             return "FIELD_TYPE_BOOLEAN";
-        case FIELD_TYPE_INT_ARRAY:
-            return "FIELD_TYPE_INT_ARRAY";
+        case FIELD_TYPE_BYTE:
+            return "FIELD_TYPE_BYTE";
+        case FIELD_TYPE_CHAR:
+            return "FIELD_TYPE_CHAR";
+        case FIELD_TYPE_SHORT:
+            return "FIELD_TYPE_SHORT";
+        case FIELD_TYPE_LONG:
+            return "FIELD_TYPE_LONG";
+        case FIELD_TYPE_FLOAT:
+            return "FIELD_TYPE_FLOAT";
+        case FIELD_TYPE_DOUBLE:
+            return "FIELD_TYPE_DOUBLE";
         default:
             return "FIELD_TYPE_UNKNOWN";
     }
 }
 
+jsize getFieldTypeSize(FIELD_TYPE fieldType) {
+    switch (fieldType) {
+        case FIELD_TYPE_OBJECT:
+            return sizeof(jobject);
+        case FIELD_TYPE_BOOLEAN:
+            return sizeof(jboolean);
+        case FIELD_TYPE_BYTE:
+            return sizeof(jbyte);
+        case FIELD_TYPE_CHAR:
+            return sizeof(jchar);
+        case FIELD_TYPE_SHORT:
+            return sizeof(jshort);
+        case FIELD_TYPE_INT:
+            return sizeof(jint);
+        case FIELD_TYPE_LONG:
+            return sizeof(jlong);
+        case FIELD_TYPE_FLOAT:
+            return sizeof(jfloat);
+        case FIELD_TYPE_DOUBLE:
+            return sizeof(jdouble);
+        default:
+            return sizeof(void *);
+    }
+}
+
+jobject getObjectFieldValueById(jfieldID id) {
+    getFieldValueById(jobject, FIELD_TYPE_OBJECT, FieldsObject, fieldsObject, fieldsObject_size, id, (jobject)0x42424242);
+}
+
 jint getIntFieldValueById(jfieldID id) {
-    getFieldValueById(jint, FIELD_TYPE_INT, FieldsInt, fieldsInt, fieldsInt_size, id, 0);
+    getFieldValueById(jint, FIELD_TYPE_INT, FieldsInt, fieldsInt, fieldsInt_size, id, 1);
 }
 
 jboolean getBooleanFieldValueById(jfieldID id) {
@@ -115,27 +99,63 @@ jboolean getBooleanFieldValueById(jfieldID id) {
 }
 
 jbyte getByteFieldValueById(jfieldID id) {
-    getFieldValueById(jbyte, FIELD_TYPE_BYTE, FieldsByte, fieldsByte, fieldsByte_size, id, JNI_FALSE);
+    getFieldValueById(jbyte, FIELD_TYPE_BYTE, FieldsByte, fieldsByte, fieldsByte_size, id, 'a');
 }
 
 jchar getCharFieldValueById(jfieldID id) {
-    getFieldValueById(jchar, FIELD_TYPE_CHAR, FieldsChar, fieldsChar, fieldsChar_size, id, JNI_FALSE);
+    getFieldValueById(jchar, FIELD_TYPE_CHAR, FieldsChar, fieldsChar, fieldsChar_size, id, 'b');
 }
 
 jshort getShortFieldValueById(jfieldID id) {
-    getFieldValueById(jshort, FIELD_TYPE_SHORT, FieldsShort, fieldsShort, fieldsShort_size, id, JNI_FALSE);
+    getFieldValueById(jshort, FIELD_TYPE_SHORT, FieldsShort, fieldsShort, fieldsShort_size, id, 1);
 }
 
 jlong getLongFieldValueById(jfieldID id) {
-    getFieldValueById(jlong, FIELD_TYPE_LONG, FieldsLong, fieldsLong, fieldsLong_size, id, JNI_FALSE);
+    getFieldValueById(jlong, FIELD_TYPE_LONG, FieldsLong, fieldsLong, fieldsLong_size, id, 1);
 }
 
 jfloat getFloatFieldValueById(jfieldID id) {
-    getFieldValueById(jfloat, FIELD_TYPE_FLOAT, FieldsFloat, fieldsFloat, fieldsFloat_size, id, JNI_FALSE);
+    getFieldValueById(jfloat, FIELD_TYPE_FLOAT, FieldsFloat, fieldsFloat, fieldsFloat_size, id, 1.0f);
 }
 
 jdouble getDoubleFieldValueById(jfieldID id) {
-    getFieldValueById(jdouble, FIELD_TYPE_DOUBLE, FieldsDouble, fieldsDouble, fieldsDouble_size, id, JNI_FALSE);
+    getFieldValueById(jdouble, FIELD_TYPE_DOUBLE, FieldsDouble, fieldsDouble, fieldsDouble_size, id, 1);
+}
+
+void setObjectFieldValueById(jfieldID id, jobject value) {
+    setFieldValueById(jobject, FIELD_TYPE_OBJECT, FieldsObject, fieldsObject, fieldsObject_size, id, value);
+}
+
+void setIntFieldValueById(jfieldID id, jint value) {
+    setFieldValueById(jint, FIELD_TYPE_INT, FieldsInt, fieldsInt, fieldsInt_size, id, value);
+}
+
+void setBooleanFieldValueById(jfieldID id, jboolean value) {
+    setFieldValueById(jboolean, FIELD_TYPE_BOOLEAN, FieldsBoolean, fieldsBoolean, fieldsBoolean_size, id, value);
+}
+
+void setByteFieldValueById(jfieldID id, jbyte value) {
+    setFieldValueById(jbyte, FIELD_TYPE_BYTE, FieldsByte, fieldsByte, fieldsByte_size, id, value);
+}
+
+void setCharFieldValueById(jfieldID id, jchar value) {
+    setFieldValueById(jchar, FIELD_TYPE_CHAR, FieldsChar, fieldsChar, fieldsChar_size, id, value);
+}
+
+void setShortFieldValueById(jfieldID id, jshort value) {
+    setFieldValueById(jshort, FIELD_TYPE_SHORT, FieldsShort, fieldsShort, fieldsShort_size, id, value);
+}
+
+void setLongFieldValueById(jfieldID id, jlong value) {
+    setFieldValueById(jlong, FIELD_TYPE_LONG, FieldsLong, fieldsLong, fieldsLong_size, id, value);
+}
+
+void setFloatFieldValueById(jfieldID id, jfloat value) {
+    setFieldValueById(jfloat, FIELD_TYPE_FLOAT, FieldsFloat, fieldsFloat, fieldsFloat_size, id, value);
+}
+
+void setDoubleFieldValueById(jfieldID id, jdouble value) {
+    setFieldValueById(jdouble, FIELD_TYPE_DOUBLE, FieldsDouble, fieldsDouble, fieldsDouble_size, id, value);
 }
 
 jmethodID getMethodIdByName(const char* name) {
@@ -144,8 +164,6 @@ jmethodID getMethodIdByName(const char* name) {
             return (jmethodID) nameToMethodId[i].id;
         }
     }
-
-    fjni_logv_warn("Unknown method name \"%s\"", name);
     return NULL;
 }
 
@@ -258,81 +276,201 @@ jfloat methodFloatCall(jmethodID id, va_list args) {
     return -1;
 }
 
-int dynamicallyAllocatedArrays_length = 0;
-DynamicallyAllocatedArrays* dynamicallyAllocatedArrays = NULL;
-pthread_mutex_t* dynamicallyAllocatedArrays_mutex = NULL;
-
-void dynarr_check_init_mutex() {
-    if (dynamicallyAllocatedArrays_mutex == NULL) {
+void jda_lock() {
+    if (javaDynArrays_mutex == NULL) {
         pthread_mutex_t initTmpNormal;
-        dynamicallyAllocatedArrays_mutex = malloc(sizeof(pthread_mutex_t));
-        memcpy(dynamicallyAllocatedArrays_mutex, &initTmpNormal, sizeof(pthread_mutex_t));
+        javaDynArrays_mutex = malloc(sizeof(pthread_mutex_t));
+        memcpy(javaDynArrays_mutex, &initTmpNormal, sizeof(pthread_mutex_t));
 
-        if (pthread_mutex_init(dynamicallyAllocatedArrays_mutex, NULL) != 0) {
+        if (pthread_mutex_init(javaDynArrays_mutex, NULL) != 0) {
             fjni_log_err("Failed to allocate dynarr mutex");
+            javaDynArrays_mutex = NULL;
+            return;
         }
+    }
+
+    pthread_mutex_lock(javaDynArrays_mutex);
+}
+
+void jda_unlock() {
+    if (javaDynArrays_mutex != NULL) {
+        pthread_mutex_unlock(javaDynArrays_mutex);
     }
 }
 
-jsize* findDynamicallyAllocatedArrayLength(const void* arr) {
-    dynarr_check_init_mutex();
+jboolean jda_tryinit() {
+    if (javaDynArrays == NULL) {
+        javaDynArrays = malloc(16 * sizeof(JavaDynArray));
+        if (!javaDynArrays)
+            return JNI_FALSE;
 
-    jsize* ret = NULL;
-    pthread_mutex_lock(dynamicallyAllocatedArrays_mutex);
+        for (int i = 0; i < 16; ++i) {
+            javaDynArrays[i].array = NULL;
+            javaDynArrays[i].len = -1;
+            javaDynArrays[i].type = FIELD_TYPE_UNKNOWN;
+        }
 
-    if (dynamicallyAllocatedArrays_length > 0) {
-        for (int i = 0; i < dynamicallyAllocatedArrays_length; i++) {
-            if (dynamicallyAllocatedArrays[i].arr == arr) {
-                ret = &dynamicallyAllocatedArrays[i].length;
-                break;
-            }
+        javaDynArrays_free = 16;
+        javaDynArrays_taken = 0;
+    }
+
+    return JNI_TRUE;
+}
+
+jboolean jda_extend() {
+    if (jda_tryinit() == JNI_FALSE)
+        return JNI_FALSE;
+
+    if (javaDynArrays_free == 0) {
+        if (javaDynArrays == NULL)
+            return JNI_FALSE;
+
+        javaDynArrays = realloc(javaDynArrays, (sizeof(JavaDynArray) * (javaDynArrays_taken+16)));
+
+        if (javaDynArrays == NULL)
+            return JNI_FALSE;
+
+        for (int i = javaDynArrays_taken; i < javaDynArrays_taken+16; ++i) {
+            javaDynArrays[i].array = NULL;
+            javaDynArrays[i].len = -1;
+            javaDynArrays[i].type = FIELD_TYPE_UNKNOWN;
+        }
+
+        javaDynArrays_free = 16;
+    }
+    return JNI_TRUE;
+}
+
+JavaDynArray * jda_alloc(jsize len, FIELD_TYPE type) {
+    jda_lock();
+
+    void * array = malloc(len * getFieldTypeSize(type));
+    if (!array) {
+        jda_unlock();
+        return NULL;
+    }
+
+    if (jda_extend() == JNI_FALSE) {
+        jda_unlock();
+        free(array);
+        return NULL;
+    }
+
+    int index = -1;
+    for (int i = 0; i < (javaDynArrays_taken+javaDynArrays_free); ++i) {
+        if (javaDynArrays[i].array == NULL) {
+            index = i;
         }
     }
-    pthread_mutex_unlock(dynamicallyAllocatedArrays_mutex);
-    if (!ret) { fjni_logv_warn("not found dynalloc array 0x%x", (int)arr); }
+
+    if (index == -1) {
+        jda_unlock();
+        free(array);
+        return NULL;
+    }
+
+    javaDynArrays[index].array = array;
+    javaDynArrays[index].len = len;
+    javaDynArrays[index].type = type;
+
+    javaDynArrays_taken++;
+    javaDynArrays_free--;
+
+    JavaDynArray * ret = &javaDynArrays[index];
+    jda_unlock();
     return ret;
 }
 
-void saveDynamicallyAllocatedArrayPointer(const void * arr, jsize sz) {
-    dynarr_check_init_mutex();
+jsize jda_sizeof(JavaDynArray * jda) {
+    if (!jda) return -1;
+    if (!javaDynArrays) return -1;
 
-    pthread_mutex_lock(dynamicallyAllocatedArrays_mutex);
-    if (dynamicallyAllocatedArrays_length == 0) {
-        dynamicallyAllocatedArrays = malloc(sizeof(DynamicallyAllocatedArrays));
-    } else {
-        dynamicallyAllocatedArrays = realloc(dynamicallyAllocatedArrays, (sizeof(DynamicallyAllocatedArrays) * (dynamicallyAllocatedArrays_length+1)));
-    }
-    dynamicallyAllocatedArrays[dynamicallyAllocatedArrays_length].length = sz;
-    dynamicallyAllocatedArrays[dynamicallyAllocatedArrays_length].arr = arr;
-    dynamicallyAllocatedArrays[dynamicallyAllocatedArrays_length].id = dynamicallyAllocatedArrays_length;
-    dynamicallyAllocatedArrays[dynamicallyAllocatedArrays_length].freed = 0;
-    dynamicallyAllocatedArrays_length++;
-    pthread_mutex_unlock(dynamicallyAllocatedArrays_mutex);
-}
-
-jboolean tryFreeDynamicallyAllocatedArray(const void * arr) {
-    dynarr_check_init_mutex();
-
-    pthread_mutex_lock(dynamicallyAllocatedArrays_mutex);
-
-    if (dynamicallyAllocatedArrays_length <= 0) {
-        pthread_mutex_unlock(dynamicallyAllocatedArrays_mutex);
-        return JNI_FALSE;
+    jda_lock();
+    if (javaDynArrays_taken == 0) {
+        jda_unlock();
+        return -1;
     }
 
-    for (int i = 0; i < dynamicallyAllocatedArrays_length; i++) {
-        if (dynamicallyAllocatedArrays[i].arr == arr) {
-            if (dynamicallyAllocatedArrays[i].freed == 1 || dynamicallyAllocatedArrays[i].arr == NULL) {
-                pthread_mutex_unlock(dynamicallyAllocatedArrays_mutex);
-                return JNI_TRUE;
+    for (int i = 0; i < (javaDynArrays_taken+javaDynArrays_free); i++) {
+        if (jda == &javaDynArrays[i]) {
+            if (javaDynArrays[i].array == NULL) {
+                jda_unlock();
+                return NULL;
             }
-            free((void*)dynamicallyAllocatedArrays[i].arr);
-            dynamicallyAllocatedArrays[i].freed = 1;
-            pthread_mutex_unlock(dynamicallyAllocatedArrays_mutex);
-            return JNI_TRUE;
+            jsize ret = javaDynArrays[i].len;
+            jda_unlock();
+            return ret;
         }
     }
 
-    pthread_mutex_unlock(dynamicallyAllocatedArrays_mutex);
-    return JNI_FALSE;
+    jda_unlock();
+    return -1;
+}
+
+jboolean jda_free(JavaDynArray * jda) {
+    if (!jda) return JNI_FALSE;
+    if (!javaDynArrays) return JNI_FALSE;
+
+    jda_lock();
+    if (javaDynArrays_taken == 0) {
+        jda_unlock();
+        return JNI_FALSE;
+    }
+
+    int index = -1;
+    for (int i = 0; i < (javaDynArrays_taken+javaDynArrays_free); ++i) {
+        if (jda == &javaDynArrays[i]) {
+            index = i;
+        }
+    }
+
+    if (index == -1) {
+        jda_unlock();
+        return JNI_FALSE;
+    }
+
+    free(javaDynArrays[index].array);
+    javaDynArrays[index].array = NULL;
+    javaDynArrays[index].type = FIELD_TYPE_UNKNOWN;
+    javaDynArrays[index].len = 0;
+
+    javaDynArrays_taken--;
+    javaDynArrays_free++;
+    jda_unlock();
+    return JNI_TRUE;
+}
+
+JavaDynArray * jda_find(void * arr) {
+    if (!arr) return NULL;
+    if (!javaDynArrays) return NULL;
+
+    jda_lock();
+    if (javaDynArrays_taken == 0) {
+        jda_unlock();
+        return NULL;
+    }
+
+    for (int i = 0; i < (javaDynArrays_taken+javaDynArrays_free); ++i) {
+        if (arr == &javaDynArrays[i]) {
+            if (javaDynArrays[i].array == NULL) {
+                jda_unlock();
+                return NULL;
+            }
+            JavaDynArray * ret = &javaDynArrays[i];
+            jda_unlock();
+            return ret;
+        }
+    }
+
+    jda_unlock();
+    return NULL;
+}
+
+va_list _AtoV(int dummy, ...) {
+    va_list args1;
+    va_start(args1, dummy);
+    va_list args2;
+    va_copy(args2, args1);
+    va_end(args1);
+    return args2;
 }

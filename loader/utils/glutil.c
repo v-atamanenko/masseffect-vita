@@ -16,6 +16,7 @@
 #include "sha1.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "logger.h"
 
 #include <stdio.h>
 #include <malloc.h>
@@ -71,7 +72,7 @@ void glShaderSourceHook(GLuint shader, GLsizei count, const GLchar **string,
 
     FILE *file = fopen(gxp_path, "rb");
     if (!file) {
-        debugPrintf("[%i] Could not find %s\n", count, gxp_path);
+        logv_error("[%i] Could not find %s", count, gxp_path);
 
         char glsl_path[128];
         snprintf(glsl_path, sizeof(glsl_path), "%s/%s.glsl",

@@ -1,6 +1,6 @@
 <h1 align="center">
 <img align="center" src="screenshots/banner.png" width="50%"><br>
-Dead Space · PSVita Port
+MASS EFFECT™ INFILTRATOR · PSVita Port
 </h1>
 <p align="center">
   <a href="#setup-instructions-for-players">How to install</a> •
@@ -11,23 +11,30 @@ Dead Space · PSVita Port
   <a href="#license">License</a>
 </p>
 
-Dead Space is a 2011 survival horror mobile game for iOS and Android devices.
-A spin-off within the Dead Space series, the game is set after the events
-of original Dead Space and prior to the events of Dead Space 2 and shows
-how the Necromorph outbreak began and spread through the Titan Sprawl.
+Mass Effect: Infiltrator is an iOS/Android-exclusive Third-Person Shooter with
+RPG Elements released as a tie-in game to Mass Effect 3. The players take
+control of Randall Ezno, a Cerberus Operative that ends up at odds with
+Cerberus's plans for himself and his coworkers. Much shooting and
+backstabbery ensues.
 
-This repository contains a loader of **the Xperia Play release of Dead Space**,
-based on the [Android SO Loader by TheFloW](https://github.com/TheOfficialFloW/gtasa_vita).
+This repository contains a loader of **the Android release of Mass Effect:
+Infiltrator**, based on the [Android SO Loader by TheFloW][gtasa_vita].
 The loader provides a tailored, minimalistic Android-like environment to run
 the official ARMv6 game executable on the PS Vita.
 
 Disclaimer
 ----------------
 
-**DEAD SPACE** is a registered trademark of Electronic Arts Inc. The work
-presented in this repository is not "official" or produced or sanctioned by
-the owner(s) of the aforementioned trademark or any other registered trademark
-mentioned in this repository.
+**MASS EFFECT™ INFILTRATOR is copyright © 2012 EA International (Studio and
+Publishing) Ltd.**
+
+Mass Effect, Mass Effect logo, BioWare and BioWare logo are trademarks of
+EA International (Studio and Publishing) Ltd. EA and the EA logo are trademarks
+of Electronic Arts Inc. Developed by Iron Monkey Studios.
+
+The work presented in this repository is not "official" or produced or
+sanctioned by the owner(s) of the aforementioned trademark(s) or any other
+registered trademark mentioned in this repository.
 
 This software does not contain the original code, executables, assets, or
 other non-redistributable parts of the original game product. The authors of 
@@ -41,9 +48,9 @@ Setup Instructions (For Players)
 In order to properly install the game, you'll have to follow these steps
 precisely:
 
-- Install or update [kubridge][kubridge] and [FdFix][fdfix] by copying
-`kubridge.skprx` and `fd_fix.skprx` to your taiHEN plugins folder
-(usually `ur0:tai`) and adding two entries to your `config.txt` under `*KERNEL`:
+- Install [kubridge][kubridge] and [FdFix][fdfix] by copying `kubridge.skprx`
+and `fd_fix.skprx` to your taiHEN plugins folder (usually `ur0:tai`) and adding
+two entries to your `config.txt` under `*KERNEL`:
 
 ```
   *KERNEL
@@ -53,71 +60,67 @@ precisely:
 
 > ⚠️ Don't install `fd_fix.skprx` if you're using the rePatch plugin!
 
-> ⚠️ Even if you had `kubridge.skprx` installed before, most likely you still
-> need to update it, since a new version of the plugin was released at the same
-> time as this port.
+> ⚠️ Unlike the Dead Space Mobile port, there is no requirement for
+`kubridge.skprx` version. Any version should work.
 
 - Make sure you have `libshacccg.suprx` in the `ur0:/data/` folder on your
 console. If you don't, use [ShaRKBR33D][shrkbrd] to get it quickly and easily.
 
-- <u>Legally</u> obtain your copy of Dead Space Mobile for Xperia Play in a form
-of an `.apk` file. The version for regular Android devices, also known as
-the latest/Google Play version, **will not work**! Make sure that your game is
-**v1.1.33** (this is the last one supported on Xperia Play and provided via
-EA Store back in 2012).
+- <u>Legally</u> obtain your copy of Mass Effect: Infiltrator in a form
+of an `.apk` file. Make sure that your game is **v1.0.58**.
 
     - If you have it installed on your phone, you can 
         [get all the required files directly from it][unpack-on-phone]
         or by using any APK extractor you can find on Google Play.
 
 > ℹ️ Verify that your build is exactly the correct one using **sha1sum** (can also
-> be found as an online tool). sha1sum for `lib/armeabi/libEAMGameDeadSpace.so`
-> must be `0ed42b611415015807f759ec9b5457857143ce39`
+> be found as an online tool). sha1sum for `lib/armeabi/libMassEffect.so`
+> must be `ea58b733d3d267ab639431b50539542faa43f0d0`
 
 - Open the `.apk` with any zip explorer (like [7-Zip](https://www.7-zip.org/))
-and extract all folders from the `.apk` into `ux0:data/deadspace` on your Vita.
-Example of correct resulting path: `ux0:data/deadspace/lib/armeabi/libEAMGameDeadSpace.so`
+and extract all folders from the `.apk` into `ux0:data/masseffect` on your Vita.
+Example of correct resulting path: `ux0:data/masseffect/lib/armeabi/libMassEffect.so`
 
 - If your `.apk` was less than 100MB of size, you also need assets ("cache").
-You need to run the game at least once on your Xperia so that it downloads the
-required files, and then you can find them at `/sdcard/ea/deadspace/published`.
-Copy the `published` folder to `ux0:data/deadspace/assets/` on your Vita.
-Example of correct resulting path: `ux0:data/deadspace/assets/published/data/achievements.sb`
+You need to run the game at least once on your device so that it downloads the
+required files, and then you can find them at `/sdcard/Android/data/com.ea.games.meinfiltrator_gamepad/`.
+Copy all files and folders from there to `ux0:data/masseffect/assets/` on your Vita.
+Example of correct resulting path: `ux0:data/masseffect/assets/AssetInfo.indicate`,
+`ux0:data/masseffect/assets/published/data/healths.prefabs.sb`
 
-- Install `DeadSpace.vpk` (from [Releases](https://github.com/v-atamanenko/deadspace-vita/releases/latest)).
+- Install `MassEffectInfiltrator.vpk` (from [Releases][releases]).
 
 Controls
 -----------------
 
-|       Button        | Action                                  |
-|:-------------------:|:----------------------------------------|
-| ![joysl] / ![joysr] | Move / Control camera                   |
-| ![trigl] / ![trigr] | Aim / Fire                              |
-|      ![dpadh]       | Previous / Next Weapon                  |
-|      ![dpadv]       | Plasma Saw Attack / Locator             |
-|      ![cross]       | Interact with doors, items              |
-|      ![circl]       | Activate Kinesis                        |
-|      ![squar]       | Reload weapon                           |
-|      ![trian]       | Quick Turn / Statis (when aiming)       |
-|      ![selec]       | Show HUD                                |
-|      ![start]       | Open Menu                               |
-| Accelerometer Tilt  | Switch weapon fire mode                 |
-| Accelerometer Shake | Jump in Zero-G                          |
+|       Button        | Action                             |
+|:-------------------:|:-----------------------------------|
+| ![joysl] / ![joysr] | Move / Control camera              |
+| ![trigl] / ![trigr] | Aim☀ / Fire                        |
+|      ![dpadh]       | Ability Selector / Weapon Selector |
+|      ![dpadv]       | Next / Previous Ability / Weapon   |
+|      ![cross]       | Interact / Confirm (in menu)       |
+|      ![circl]       | Melee Atack / Back (in menu)       |
+|      ![squar]       | Stealth / Cloak                    |
+|      ![trian]       | Ability Activation                 |
+|      ![start]       | Open Menu                          |
+
+☀ — Note that Aim (![trigr]) is not hold-to-aim. You click once to activate
+aim mode, and once again to deactivate it.
 
 Known Issues
 ----------------
 
-1. Accelerometer controls may feel a little too sensitive. Fix may be made.
-2. Analog sticks controls may sometimes "snap" a little. Most likely, can not be
-fixed, seems to be the game's own caveat.
-3. While the game has a subtitles option, it's recommended not to use them
-because in some scenes they skip immediately. Most likely, can not be fixed.
-4. Rarely (as it seems so far, maybe once an hour or even less often),
-it can randomly crash with a Prefetch Abort / Data Abort exception. Game creates
-checkpoint saves pretty often, so you shouldn't lose any substantial progress.
-6. When entering the tram at the end of Chapter 5/9/10, audio may stop working.
-If it happens, complete the tram ride and restart the game after getting to the
-next chapter.
+1. After you die or quit to menu and resume game, you may see the long loading
+screen telling you that you should wait for about 40 seconds. This is
+a side effect of fixing another, game-breaking bug, and most likely can not be
+helped.
+2. In intensive combat scenes, framerate can degrade to ~20 FPS. I'll try to
+figure out ways to make it better in the next versions.
+3. Aiming with sniper rifle can get very stuttery. I'll try to figure out ways
+to make it better in the next versions.
+4. Help menu and exit game button in main menu don't work. Most likely, won't
+be fixed
 
 Build Instructions (For Developers)
 ----------------
@@ -159,16 +162,12 @@ Credits
 
 - [Andy "The FloW" Nguyen][flow] for the original .so loader.
 - [Rinnegatamante][rinne] for VitaGL and lots of help with understanding and
-debugging the loader.
-- [Bythos][bythos] for the new kubridge with exceptions handling support and
-short vector VFP emulation and code generation.
+debugging the loader and translating shaders.
 - [CatoTheYounger][cato] for **tremendous** amount of testing. Not the hero we
 deserved, but the one we need.
 - [Once13One][o13o] for his beautiful LiveArea assets.
-- Andiweli, AvatarIII, BignThicc, dangtruong23, DieterB, Havocking92, ivanproff,
-keeponjammin, Long-nose, Maplesyrup6661, maxbarno, mmtechnodrone, NeoTechni,
-ReAnimation9, Shaitan, stayntruebreal, thenoble1, Tibmyyy: backers of the
-[bounty][bounty] that gave me motivation and made this port possible.
+- Andiweli, mmtechnodrone,  SoulEaterGames: backers of the [bounty][bounty] for
+this port.
 
 License
 ----------------
@@ -192,11 +191,12 @@ the MIT license. See the [LICENSE](LICENSE) file for details.
 [kubridge]: https://github.com/bythos14/kubridge/releases/
 [fdfix]: https://github.com/TheOfficialFloW/FdFix/releases/
 [unpack-on-phone]: https://stackoverflow.com/questions/11012976/how-do-i-get-the-apk-of-an-installed-app-without-root-access
-[shrkbrd]: https://github.com/Rinnegatamante/ShaRKBR33D
+[shrkbrd]: https://github.com/Rinnegatamante/ShaRKBR33D/releases/
+[gtasa_vita]: https://github.com/TheOfficialFloW/gtasa_vita
+[releases]: https://github.com/v-atamanenko/masseffect-vita/releases/latest
 
 [flow]: https://github.com/TheOfficialFloW/
 [rinne]: https://github.com/Rinnegatamante/
-[bythos]: https://github.com/bythos14/
 [cato]: https://github.com/CatoTheYounger97/
 [o13o]: https://github.com/once13one/
-[bounty]: https://app.bountysource.com/issues/96950715-dead-space-android-port-for-ps-vita
+[bounty]: https://app.bountysource.com/issues/113094798-android-port-mass-effect-infiltrator

@@ -32,6 +32,8 @@
 #include <sys/stat.h>
 #include <psp2/kernel/clib.h>
 #include <psp2/appmgr.h>
+#include <sha1.h>
+#include <malloc.h>
 
 #pragma ide diagnostic ignored "bugprone-reserved-identifier"
 
@@ -143,6 +145,40 @@ inline int8_t is_dir(char* p) {
     return 0;
 }
 
+char * get_file_sha1(const char* path) {
+    FILE *f = fopen(path, "rb");
+    if (!f) {
+        return NULL;
+    }
+
+    fseek(f, 0, SEEK_END);
+    long size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    void *buf = malloc(size);
+    fread(buf, 1, size, f);
+    fclose(f);
+
+    uint8_t sha1[20];
+    SHA1_CTX ctx;
+    sha1_init(&ctx);
+    sha1_update(&ctx, (uint8_t *)buf, size);
+    sha1_final(&ctx, (uint8_t *)sha1);
+    free(buf);
+
+    char hash[42];
+    memset(hash, 0, sizeof(hash));
+
+    int i;
+    for (i = 0; i < 20; i++) {
+        char string[4];
+        sprintf(string, "%02X", sha1[i]);
+        strcat(hash, string);
+    }
+
+    hash[41] = '\0';
+    return strdup(hash);
+}
+
 extern volatile int silentLoad;
 
 int soloader_init_all() {
@@ -166,6 +202,31 @@ int soloader_init_all() {
     if (check_kubridge() < 0)
         fatal_error("Error kubridge.skprx is not installed.");
     log_info("check_kubridge() passed.\n");
+
+    if (!file_exists(SO_PATH)) {
+        fatal_error("Looks like you haven't installed the data files for this "
+                    "port, or they are in an incorrect location. Please make "
+                    "sure that you have %s file exactly at that path.", SO_PATH);
+    }
+
+    char p[512];
+    snprintf(p, sizeof(p), "%spublished/data/level_index.prefabs.sb", DATA_PATH_INT);
+    if (!file_exists(p)) {
+        fatal_error("Looks like you haven't installed the data files for this "
+                    "port, or they are in an incorrect location. Please make "
+                    "sure that you put the \"published\" directory into "
+                    "%s.", DATA_PATH_INT);
+    }
+
+    char* so_hash = get_file_sha1(SO_PATH);
+    if (strcmp(so_hash, "EA58B733D3D267AB639431B50539542FAA43F0D0") != 0) {
+        fatal_error("Looks like you installed a wrong version of the game that "
+                    "doesn't work with this port. Please make sure that you're "
+                    "using the Android release v1.0.58. Expected SHA1: "
+                    "EA58B733D3D267AB639431B50539542FAA43F0D0, actual SHA1: "
+                    "%s.", so_hash);
+    }
+    free(so_hash);
 
     if (so_file_load(&so_mod, SO_PATH, LOAD_ADDRESS) < 0)
         fatal_error("Error could not load %s.", SO_PATH);
@@ -198,6 +259,14 @@ int soloader_init_all() {
 
     if (!is_dir("ux0:data/masseffect/assets/var1")) {
         mkdir("ux0:data/masseffect/assets/var1", 0700);
+    }
+
+    if (!is_dir("ux0:data/masseffect/assets/files")) {
+        mkdir("ux0:data/masseffect/assets/files", 0700);
+    }
+
+    if (!is_dir("ux0:data/masseffect/assets/files/GameSkeleton")) {
+        mkdir("ux0:data/masseffect/assets/files/GameSkeleton", 0700);
     }
 
     return 1;

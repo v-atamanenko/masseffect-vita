@@ -27,7 +27,7 @@ bool cheat_instantKill;
 bool cheat_noclip;
 
 void resetSettings() {
-    aimSensitivity = 1.66f;
+    aimSensitivity = 1.75f;
     leftStickDeadZone = 0.13f;
     rightStickDeadZone = 0.12f;
     fpsLock = 0;

@@ -90,6 +90,12 @@ Example of correct resulting path: `ux0:data/masseffect/assets/AssetInfo.indicat
 
 - Install `MassEffectInfiltrator.vpk` (from [Releases][releases]).
 
+- **Optional but strongly recommended**: Install [PSVshell][PSVshell]
+to overclock your device to 500Mhz.
+
+- Don't forget that the port has a configurator/companion app you can launch
+form live area by clicking on "Settings" in the bottom left corner.
+
 Controls
 -----------------
 
@@ -194,6 +200,7 @@ the MIT license. See the [LICENSE](LICENSE) file for details.
 [shrkbrd]: https://github.com/Rinnegatamante/ShaRKBR33D/releases/
 [gtasa_vita]: https://github.com/TheOfficialFloW/gtasa_vita
 [releases]: https://github.com/v-atamanenko/masseffect-vita/releases/latest
+[PSVshell]: https://github.com/Electry/PSVshell/releases
 
 [flow]: https://github.com/TheOfficialFloW/
 [rinne]: https://github.com/Rinnegatamante/

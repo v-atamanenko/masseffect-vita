@@ -39,7 +39,7 @@ bool cheat_instantKill;
 bool cheat_noclip;
 
 void resetSettings() {
-    aimSensitivity = 1.66f;
+    aimSensitivity = 1.75f;
     leftStickDeadZone = 0.13f;
     rightStickDeadZone = 0.12f;
     fpsLock = 0;
@@ -204,7 +204,7 @@ void saveConfig(void) {
 }
 
 char *options_descs[] = {
-        "Increasing this value will allow to move camera faster while aiming.\nThe default value is: 1.66.", // aimSensitivity
+        "Increasing this value will allow to move camera faster while aiming.\nThe default value is: 1.75.", // aimSensitivity
         "Deadzone for the left analog stick. Increase if you have stick drift issues.\nThe default value is: 0.13.", // leftStickDeadZone
         "Deadzone for the right analog stick. Increase if you have stick drift issues.\nThe default value is: 0.12.", // rightStickDeadZone
         "If you want to reduce FPS fluctuations and instead stay on a lower but constant level, you may try this.\nThe default value is: None.", // fpsLock

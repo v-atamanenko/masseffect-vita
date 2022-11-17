@@ -24,6 +24,8 @@ int retminus1(void);
 
 int file_exists(const char *path);
 
+char * get_file_sha1(const char* path);
+
 int check_kubridge(void);
 
 __attribute__((unused)) int string_ends_with(const char * str, const char * suffix);

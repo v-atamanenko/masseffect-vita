@@ -14,8 +14,7 @@
 #ifndef FALSOJNI_IMPL_BRIDGE
 #define FALSOJNI_IMPL_BRIDGE
 
-#include "config.h"
-#include "utils/utils.h"
+#include <stddef.h>
 #include "jni.h"
 
 /*

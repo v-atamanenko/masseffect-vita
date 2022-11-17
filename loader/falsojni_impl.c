@@ -25,6 +25,7 @@
 #include "android/EAAudioCore.h"
 
 #include "utils/logger.h"
+#include "config.h"
 
 //extern void (*Java_com_ea_EAIO_EAIO_Startup)(JNIEnv*, void*, jobject);
 // com/ea/EAIO/EAIO/Startup

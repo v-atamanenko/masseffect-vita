@@ -12,11 +12,15 @@
 #ifndef FALSOJNI_IMPL_SAMPLE
 #define FALSOJNI_IMPL_SAMPLE
 
-#include "FalsoJNI_Impl.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*
+ * COPY STARTING FROM HERE!
+ */
+
+#include "FalsoJNI_Impl.h"
 
 NameToMethodID nameToMethodId[] = {};
 
@@ -44,6 +48,10 @@ FieldsLong fieldsLong[] = {};
 FieldsShort fieldsShort[] = {};
 
 __FALSOJNI_IMPL_CONTAINER_SIZES
+
+/*
+ * COPY UP TO HERE!
+ */
 
 #ifdef __cplusplus
 };

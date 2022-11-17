@@ -24,8 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <psp2/apputil.h>
-
 #include "FalsoJNI_ImplBridge.h"
 #include "FalsoJNI_Logger.h"
 
@@ -1720,7 +1718,7 @@ jboolean ExceptionCheck(JNIEnv* env) {
     return JNI_FALSE;
 }
 
-// TODO: Implement DirectByteBuggers
+// TODO: Implement DirectByteBuffers
 
 jobject NewDirectByteBuffer(JNIEnv* env, void* address, jlong capacity) {
     fjni_logv_warn("[JNI] NewDirectByteBuffer(env, 0x%x, %i): not implemented", (int)address, capacity);

@@ -14,9 +14,9 @@
 #include <psp2/kernel/threadmgr.h>
 #include <pthread.h>
 #include "utils/settings.h"
-
-#define L_OUTER_DEADZONE 0.96f
-#define R_OUTER_DEADZONE 0.98f
+#include <stdio.h>
+#define L_OUTER_DEADZONE 0.992f
+#define R_OUTER_DEADZONE 1.0f
 
 int lastX[SCE_TOUCH_MAX_REPORT] = {-1, -1, -1, -1, -1, -1, -1, -1};
 int lastY[SCE_TOUCH_MAX_REPORT] = {-1, -1, -1, -1, -1, -1, -1, -1};
@@ -26,6 +26,19 @@ void (*NativeOnKeyDown)(JNIEnv *env, jobject obj, int moduleId, int androidKey, 
 void (*NativeOnKeyUp)(JNIEnv *env, jobject obj, int moduleId, int androidKey, int altPressed);
 void (*NativeOnAcceleration)(JNIEnv *env, jobject obj, float f1, float f2, float f3);
 void (*NativeDispatchGenericMotionEvent)(JNIEnv *env, jobject obj, float left_x, float left_y, float right_x, float right_y, int action);
+
+float lerp(float x1, float y1, float x3, float y3, float x2) {
+    return ((x2-x1)*(y3-y1) / (x3-x1)) + y1;
+}
+
+float coord_normalize(float val, float deadzone_min, float deadzone_max) {
+    float sign = 1.0f;
+    if (val < 0) sign = -1.0f;
+
+    if (fabsf(val) < deadzone_min) return 0.f;
+    if (fabsf(val) > deadzone_max) return 1.0f*sign;
+    return lerp(0.f, deadzone_min * sign, 1.0f*sign, deadzone_max*sign, val);
+}
 
 void controls_init() {
     // Enable analog sticks and touchscreen
@@ -93,6 +106,7 @@ static ButtonMapping mapping[] = {
 uint32_t old_buttons = 0, current_buttons = 0, pressed_buttons = 0, released_buttons = 0;
 
 float lastLx = 0.0f, lastLy = 0.0f, lastRx = 0.0f, lastRy = 0.0f;
+float lastLastLx = 0.0f, lastLastLy = 0.0f, lastLastRx = 0.0f, lastLastRy = 0.0f;
 float lx = 0.0f, ly = 0.0f, rx = 0.0f, ry = 0.0f;
 
 extern volatile int silentLoad;
@@ -162,62 +176,32 @@ void pollPad() {
 
     // Analog sticks
 
-    lx = ((float)pad.lx - 128.0f) / 128.0f;
-    ly = ((float)pad.ly - 128.0f) / 128.0f;
-    rx = ((float)pad.rx - 128.0f) / 128.0f;
-    ry = ((float)pad.ry - 128.0f) / 128.0f;
+    lx = coord_normalize(((float)pad.lx - 128.0f) / 128.0f, leftStickDeadZone, L_OUTER_DEADZONE);
+    ly = coord_normalize(((float)pad.ly - 128.0f) / 128.0f, leftStickDeadZone, L_OUTER_DEADZONE);
+    rx = coord_normalize(((float)pad.rx - 128.0f) / 128.0f, rightStickDeadZone, R_OUTER_DEADZONE);
+    ry = coord_normalize(((float)pad.ry - 128.0f) / 128.0f, rightStickDeadZone, R_OUTER_DEADZONE);
 
-    if (fabsf(lx) < leftStickDeadZone)
-        lx = 0.0f;
-    if (fabsf(ly) < leftStickDeadZone)
-        ly = 0.0f;
-    if (fabsf(rx) < rightStickDeadZone)
-        rx = 0.0f;
-    if (fabsf(ry) < rightStickDeadZone)
-        ry = 0.0f;
-
-    if (fabsf(lx) > L_OUTER_DEADZONE) {
-        if (lx > L_OUTER_DEADZONE)
-            lx = 1.0f;
-        if (lx < -L_OUTER_DEADZONE)
-            lx = -1.0f;
-    }
-    if (fabsf(ly) > L_OUTER_DEADZONE) {
-        if (ly > L_OUTER_DEADZONE)
-            ly = 1.0f;
-        if (ly < -L_OUTER_DEADZONE)
-            ly = -1.0f;
-    }
-
-    if (fabsf(rx) > R_OUTER_DEADZONE) {
-        if (rx > R_OUTER_DEADZONE)
-            rx = R_OUTER_DEADZONE;
-        if (rx < -R_OUTER_DEADZONE)
-            rx = -R_OUTER_DEADZONE;
-    }
-    if (fabsf(ry) > R_OUTER_DEADZONE) {
-        if (ry > R_OUTER_DEADZONE)
-            ry = R_OUTER_DEADZONE;
-        if (ry < -R_OUTER_DEADZONE)
-            ry = -R_OUTER_DEADZONE;
-    }
-
-    if ((rx == 0.f && ry == 0.f) && (lastRx != 0.f || lastRy != 0.f)) {
-        // rstick stop
-        NativeDispatchGenericMotionEvent(&jni, (void *) 0x42424242, lx, ly, rx, ry, 3);
-    }
-    if ((lx == 0.f && ly == 0.f) && (lastLx != 0.f || lastLy != 0.f)) {
+    if ((lx == 0.f && ly == 0.f) && (lastLx == 0.f && lastLy == 0.f) && (lastLastLx != 0.f || lastLastLy != 0.f)) {
         // lstick stop
         NativeDispatchGenericMotionEvent(&jni, (void *) 0x42424242, lx, ly, rx, ry, 2);
     }
-    if (lx != 0.f || ly != 0.f) {
+    if ((rx == 0.f && ry == 0.f) && (lastRx == 0.f && lastRy == 0.f) && (lastLastRx != 0.f || lastLastRy != 0.f)) {
+        // rstick stop
+        NativeDispatchGenericMotionEvent(&jni, (void *) 0x42424242, lx, ly, rx, ry, 3);
+    }
+    if ((lx != 0.f || ly != 0.f) || ((lx == 0.f && ly == 0.f) && (lastLx != 0.f || lastLy != 0.f))) {
         // lstick move
         NativeDispatchGenericMotionEvent(&jni, (void *) 0x42424242, lx, ly, rx, ry, 0);
     }
-    if (rx != 0.f || ry != 0.f) {
+    if ((rx != 0.f || ry != 0.f) || ((rx == 0.f && ry == 0.f) && (lastRx != 0.f || lastRy != 0.f))) {
         // rstick move
         NativeDispatchGenericMotionEvent(&jni, (void *) 0x42424242, lx, ly, rx, ry, 1);
     }
+
+    lastLastLx = lastLx;
+    lastLastLy = lastLy;
+    lastLastRx = lastRx;
+    lastLastRy = lastRy;
 
     lastLx = lx;
     lastLy = ly;

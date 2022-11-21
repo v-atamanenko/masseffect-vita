@@ -111,7 +111,7 @@ Controls
 |      ![trian]       | Ability Activation                 |
 |      ![start]       | Open Menu                          |
 
-☀ — Note that Aim (![trigr]) is not hold-to-aim. You click once to activate
+☀ — Note that Aim (![trigl]) is not hold-to-aim. You click once to activate
 aim mode, and once again to deactivate it.
 
 Known Issues

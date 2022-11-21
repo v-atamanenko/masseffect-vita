@@ -127,6 +127,7 @@ figure out ways to make it better in the next versions.
 to make it better in the next versions.
 4. Help menu and exit game button in main menu don't work. Most likely, won't
 be fixed
+5. Sometimes game can start with no sound. Just close it and start again.
 
 Build Instructions (For Developers)
 ----------------
